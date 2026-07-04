@@ -72,6 +72,30 @@
     container.appendChild(frag);
   }
 
+  // ==================== 首页统计数据更新 ====================
+  function updateHeroStats() {
+    if (!window.TESTS || !window.TESTS.length) return;
+
+    // 精选测试数量
+    const featuredCount = window.TESTS.filter(t => t.featured).length;
+    const elFeatured = document.getElementById('featuredCount');
+    if (elFeatured) elFeatured.textContent = featuredCount;
+
+    // 精选测试（stat 区域）
+    const elTestCount = document.getElementById('testCount');
+    if (elTestCount) elTestCount.textContent = featuredCount;
+
+    // 测试题目总数
+    const totalQuestions = window.TESTS.reduce((sum, t) => sum + (t.questions || 0), 0);
+    const elQuestions = document.getElementById('totalQuestions');
+    if (elQuestions) elQuestions.textContent = totalQuestions;
+
+    // 结果类型总数
+    const totalTypes = window.TESTS.reduce((sum, t) => sum + (t.resultTypes || 0), 0);
+    const elTypes = document.getElementById('totalTypes');
+    if (elTypes) elTypes.textContent = totalTypes;
+  }
+
   // ==================== 渲染测试卡片 ====================
   function renderCards(tests) {
     const grid = document.getElementById('testGrid');
@@ -208,6 +232,7 @@
     setupThemeToggle();
     createStars();
     if (window.TESTS) {
+      updateHeroStats();
       renderCards(window.TESTS);
       setupFilters();
     }

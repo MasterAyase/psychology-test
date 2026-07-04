@@ -79,6 +79,7 @@ npx serve .
   duration: 5,             // 预计用时（分钟）
   tags: ['趣味', '心理'],  // 分类标签
   featured: false,         // 是否精选
+  resultTypes: 10,         // 结果类型数量
   path: 'tests/my-test/index.html'  // 测试页面路径
 }
 ```

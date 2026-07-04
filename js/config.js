@@ -15,6 +15,7 @@
  *   duration    - 预计用时（分钟）
  *   tags        - 标签分类
  *   featured    - 是否精选推荐（true 的卡片会有特殊徽章）
+ *   resultTypes - 结果类型数量（用于首页统计）
  *   path        - 测试页面路径
  */
 const TEST_CONFIG = [
@@ -29,6 +30,7 @@ const TEST_CONFIG = [
     duration: 12,
     tags: ['性格', '心理学', 'MBTI'],
     featured: true,
+    resultTypes: 16,
     path: 'tests/mbti/index.html'
   },
   {
@@ -42,6 +44,7 @@ const TEST_CONFIG = [
     duration: 8,
     tags: ['人格', '历史', '文化'],
     featured: true,
+    resultTypes: 16,
     path: 'tests/history/index.html'
   },
   {
@@ -55,6 +58,7 @@ const TEST_CONFIG = [
     duration: 6,
     tags: ['恋爱', '情感', '人格'],
     featured: true,
+    resultTypes: 8,
     path: 'tests/love/index.html'
   },
   {
@@ -68,6 +72,7 @@ const TEST_CONFIG = [
     duration: 10,
     tags: ['成长', '心理学', '自我认知'],
     featured: true,
+    resultTypes: 5,
     path: 'tests/maturity/index.html'
   },
   {
@@ -81,6 +86,7 @@ const TEST_CONFIG = [
     duration: 5,
     tags: ['趣味', '动物', '人格'],
     featured: false,
+    resultTypes: 12,
     path: 'tests/animal/index.html'
   },
   {
@@ -94,6 +100,7 @@ const TEST_CONFIG = [
     duration: 5,
     tags: ['人格', '心理学', '暗黑人格'],
     featured: true,
+    resultTypes: 8,
     path: 'tests/dark-triad/index.html'
   },
   {
@@ -107,6 +114,7 @@ const TEST_CONFIG = [
     duration: 3,
     tags: ['趣味', '占卜', '塔罗'],
     featured: true,
+    resultTypes: 78,
     path: 'tests/tarot/index.html'
   }
 ];
