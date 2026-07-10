@@ -1,8 +1,13 @@
 # W-Test 项目忽略文件
 
-# 需求和设计文档（本地参考用）
-requires.md
+# 本地说明、代理配置和开发计划（不提交）
+.claude/
+AGENTS.md
 CLAUDE.md
+favicon.jpg
+*.md
+!README.md
+!开发规范.md
 
 # 依赖
 node_modules/
@@ -29,8 +34,12 @@ desktop.ini
 /tests-output/
 *.png
 *.webp
+!assets/decorations/*.png
+!assets/decorations/*.webp
 !tests/tarot/img/*.webp
 .playwright-mcp/
+.playwright-cli/
+/output/playwright/
 
 # 构建输出
 dist/

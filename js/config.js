@@ -14,6 +14,15 @@
  *   questions   - 题目数量
  *   duration    - 预计用时（分钟）
  *   tags        - 标签分类
+ *   goals       - 首页目标分类
+ *   depth       - 探索深度（quick / medium / deep）
+ *   tone        - 内容倾向（scientific / balanced / playful）
+ *   resultPromise - 用户完成测试后能获得什么
+ *   evidence    - 理论、量表或内容依据
+ *   recommendedFor - 适合的用户情境
+ *   featuredReason - 推荐理由
+ *   storageKey  - 对应历史记录 localStorage Key
+ *   atlas       - 首页心智图谱坐标
  *   featured    - 是否精选推荐（true 的卡片会有特殊徽章）
  *   resultTypes - 结果类型数量（用于首页统计）
  *   path        - 测试页面路径
@@ -29,6 +38,15 @@ const TEST_CONFIG = [
     questions: 93,
     duration: 12,
     tags: ['性格', '心理学', 'MBTI'],
+    goals: ['认识性格', '成长状态'],
+    depth: 'deep',
+    tone: 'scientific',
+    resultPromise: '看见你的认知偏好、行为倾向和相处方式',
+    evidence: '荣格类型理论',
+    recommendedFor: '想系统认识自己的用户',
+    featuredReason: '适合第一次深入探索',
+    storageKey: 'mbti_test_history',
+    atlas: { x: 28, y: 22 },
     featured: true,
     resultTypes: 16,
     path: 'tests/mbti/index.html'
@@ -43,6 +61,15 @@ const TEST_CONFIG = [
     questions: 50,
     duration: 8,
     tags: ['人格', '历史', '文化'],
+    goals: ['认识性格', '文化与原型'],
+    depth: 'deep',
+    tone: 'balanced',
+    resultPromise: '找到与你性格最接近的历史人物原型',
+    evidence: '大五人格模型',
+    recommendedFor: '喜欢从故事和人物理解自己的用户',
+    featuredReason: '科学模型与文化叙事结合',
+    storageKey: 'history_figure_test_history',
+    atlas: { x: 49, y: 36 },
     featured: true,
     resultTypes: 16,
     path: 'tests/history/index.html'
@@ -57,6 +84,15 @@ const TEST_CONFIG = [
     questions: 30,
     duration: 6,
     tags: ['恋爱', '情感', '人格'],
+    goals: ['亲密关系', '认识性格'],
+    depth: 'medium',
+    tone: 'scientific',
+    resultPromise: '识别你在亲密关系里的依恋与表达模式',
+    evidence: 'ECR 依恋量表',
+    recommendedFor: '想改善亲密关系互动的用户',
+    featuredReason: '结果建议具体、容易应用',
+    storageKey: 'love_type_test_history',
+    atlas: { x: 40, y: 58 },
     featured: true,
     resultTypes: 8,
     path: 'tests/love/index.html'
@@ -71,6 +107,15 @@ const TEST_CONFIG = [
     questions: 50,
     duration: 10,
     tags: ['成长', '心理学', '自我认知'],
+    goals: ['成长状态', '认识性格'],
+    depth: 'deep',
+    tone: 'scientific',
+    resultPromise: '评估情绪、责任、关系与自我发展的成熟状态',
+    evidence: 'Kegan 成人发展理论',
+    recommendedFor: '正在经历转变或自我复盘的用户',
+    featuredReason: '覆盖八个成长维度',
+    storageKey: 'maturity_test_history',
+    atlas: { x: 22, y: 72 },
     featured: true,
     resultTypes: 5,
     path: 'tests/maturity/index.html'
@@ -85,6 +130,15 @@ const TEST_CONFIG = [
     questions: 30,
     duration: 5,
     tags: ['趣味', '动物', '人格'],
+    goals: ['轻松玩玩', '文化与原型'],
+    depth: 'quick',
+    tone: 'playful',
+    resultPromise: '用动物原型读懂你的社交节奏和性格气质',
+    evidence: '情境式趣味测验',
+    recommendedFor: '想快速获得轻松结果的用户',
+    featuredReason: '五分钟完成的轻量体验',
+    storageKey: 'animal_test_history',
+    atlas: { x: 79, y: 24 },
     featured: false,
     resultTypes: 12,
     path: 'tests/animal/index.html'
@@ -99,6 +153,15 @@ const TEST_CONFIG = [
     questions: 27,
     duration: 5,
     tags: ['人格', '心理学', '暗黑人格'],
+    goals: ['认识性格', '成长状态'],
+    depth: 'medium',
+    tone: 'scientific',
+    resultPromise: '了解三种暗黑人格特质在你身上的相对强度',
+    evidence: 'SD3 学术量表',
+    recommendedFor: '愿意诚实观察人格阴影的用户',
+    featuredReason: '用量表理解人格阴影',
+    storageKey: 'dark_triad_test_history',
+    atlas: { x: 58, y: 76 },
     featured: true,
     resultTypes: 8,
     path: 'tests/dark-triad/index.html'
@@ -107,12 +170,21 @@ const TEST_CONFIG = [
     id: 'tarot',
     name: '塔罗占卜',
     icon: '🔮',
-    description: '78张经典韦特塔罗牌，支持多种牌阵，AI解读带你探索潜意识',
+    description: '78 张经典韦特塔罗牌，支持多种牌阵，智能综合解读带你探索潜意识',
     color: '#5B8FBF',
     gradient: 'linear-gradient(135deg, #1e3a58 0%, #5B8FBF 50%, #89B4D8 100%)',
     questions: 1,
     duration: 3,
     tags: ['趣味', '占卜', '塔罗'],
+    goals: ['轻松玩玩', '文化与原型'],
+    depth: 'quick',
+    tone: 'playful',
+    resultPromise: '借助牌阵和象征线索整理当下的问题与感受',
+    evidence: '78 张韦特塔罗数据解读',
+    recommendedFor: '想从象征与直觉获得新视角的用户',
+    featuredReason: '适合带着一个具体问题进入',
+    storageKey: 'tarot-history',
+    atlas: { x: 82, y: 66 },
     featured: true,
     resultTypes: 78,
     path: 'tests/tarot/index.html'
