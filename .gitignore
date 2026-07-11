@@ -36,6 +36,9 @@ desktop.ini
 *.webp
 !assets/decorations/*.png
 !assets/decorations/*.webp
+!assets/tests/
+!assets/tests/**/
+!assets/tests/**/*.webp
 !tests/tarot/img/*.webp
 .playwright-mcp/
 .playwright-cli/
