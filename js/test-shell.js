@@ -59,7 +59,7 @@
     nav.innerHTML = `
       <a class="wt-nav-back" href="../../index.html">${ICONS.back}<span>测试集合</span></a>
       <a class="wt-nav-brand" href="../../index.html" aria-label="W-Test 首页">
-        <img src="../../favicon.svg" alt="" width="28" height="28"><span>W-Test</span>
+        <img src="../../favicon.png" alt="" width="28" height="28"><span>W-Test</span>
       </a>
       <span class="wt-nav-context" aria-current="page">${config.name}</span>
       <button type="button" class="wt-nav-theme" data-theme-toggle>${ICONS.sun}${ICONS.moon}</button>`;

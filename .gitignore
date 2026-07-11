@@ -33,6 +33,7 @@ desktop.ini
 /test/
 /tests-output/
 *.png
+!favicon.png
 *.webp
 !assets/decorations/*.png
 !assets/decorations/*.webp

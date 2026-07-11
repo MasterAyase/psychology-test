@@ -9,6 +9,7 @@
     recommendationStep: 0,
     recommendation: { goal: '', time: '', tone: '' }
   };
+  let isNavigating = false;
 
   const elements = {};
 
@@ -324,6 +325,77 @@
     });
   }
 
+  function wait(milliseconds) {
+    return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+  }
+
+  function waitForCriticalAssets() {
+    const heroImage = document.querySelector('.atlas__art');
+    const imageReady = !heroImage || heroImage.complete
+      ? Promise.resolve()
+      : new Promise((resolve) => {
+        heroImage.addEventListener('load', resolve, { once: true });
+        heroImage.addEventListener('error', resolve, { once: true });
+      });
+    const fontsReady = document.fonts?.ready || Promise.resolve();
+
+    return Promise.race([
+      Promise.all([imageReady, fontsReady]),
+      wait(1600)
+    ]);
+  }
+
+  async function dismissSiteLoader() {
+    const loader = document.getElementById('siteLoader');
+    if (!loader) return;
+
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const minimumDuration = window.matchMedia?.('(max-width: 640px)').matches ? 1350 : 1600;
+    await Promise.all([waitForCriticalAssets(), wait(reduceMotion ? 0 : minimumDuration)]);
+    loader.classList.add('is-hidden');
+    document.body.removeAttribute('aria-busy');
+    await wait(reduceMotion ? 0 : 570);
+    loader.hidden = true;
+  }
+
+  async function navigateWithLoader(url) {
+    const loader = document.getElementById('siteLoader');
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (!loader || reduceMotion) {
+      window.location.assign(url);
+      return;
+    }
+
+    loader.hidden = false;
+    loader.classList.add('is-transitioning');
+    document.body.setAttribute('aria-busy', 'true');
+    await new Promise((resolve) => window.requestAnimationFrame(resolve));
+    loader.classList.remove('is-hidden');
+    await wait(480);
+    window.location.assign(url);
+  }
+
+  function setupPageTransitions() {
+    document.addEventListener('click', (event) => {
+      if (isNavigating || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const link = event.target.closest('a[href]');
+      if (!link || link.target === '_blank' || link.hasAttribute('download') || link.dataset.loaderSkip === 'true') return;
+
+      const rawHref = link.getAttribute('href');
+      if (!rawHref || rawHref.startsWith('#')) return;
+
+      const destination = new URL(link.href, window.location.href);
+      const isSamePage = destination.pathname === window.location.pathname && destination.search === window.location.search;
+      if (destination.origin !== window.location.origin || isSamePage) return;
+
+      event.preventDefault();
+      isNavigating = true;
+      navigateWithLoader(destination.href);
+    });
+  }
+
   function init() {
     cacheElements();
     window.WTestTheme?.bindControls();
@@ -333,6 +405,8 @@
     renderRecentRecords();
     setupFilters();
     setupRecommendation();
+    setupPageTransitions();
+    dismissSiteLoader();
   }
 
   if (document.readyState === 'loading') {

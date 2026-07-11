@@ -13,15 +13,29 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
-<body>
+<body aria-busy="true">
+  <div class="site-loader" id="siteLoader" role="status" aria-live="polite" aria-label="正在载入 W-Test">
+    <div class="site-loader__constellation" aria-hidden="true">
+      <span class="site-loader__orbit site-loader__orbit--outer"></span>
+      <span class="site-loader__orbit site-loader__orbit--inner"></span>
+      <span class="site-loader__node site-loader__node--one"></span>
+      <span class="site-loader__node site-loader__node--two"></span>
+      <span class="site-loader__node site-loader__node--three"></span>
+      <span class="site-loader__core"><img src="favicon.png" alt="" width="52" height="52"></span>
+    </div>
+    <div class="site-loader__copy">
+      <p>正在校准你的心智图谱</p>
+      <span>W-TEST · MIND ATLAS</span>
+    </div>
+  </div>
   <a class="skip-link" href="#mainContent">跳到主要内容</a>
 
   <header class="site-header" id="siteHeader">
     <div class="site-header__inner">
       <a class="brand" href="./index.html" aria-label="W-Test 首页">
-        <img src="favicon.svg" alt="" width="34" height="34">
+        <img src="favicon.png" alt="" width="34" height="34">
         <span class="brand__name">W-Test</span>
         <span class="brand__note">心智图谱</span>
       </a>
@@ -153,7 +167,7 @@
   <footer class="site-footer">
     <div>
       <a class="brand brand--footer" href="./index.html">
-        <img src="favicon.svg" alt="" width="28" height="28">
+        <img src="favicon.png" alt="" width="28" height="28">
         <span class="brand__name">W-Test</span>
       </a>
       <p>认识自己不是一次定论，而是一段持续更新的观察。</p>
