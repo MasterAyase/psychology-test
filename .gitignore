@@ -40,7 +40,10 @@ desktop.ini
 !assets/tests/
 !assets/tests/**/
 !assets/tests/**/*.webp
+!assets/tests/**/SOURCES.md
+!assets/tests/ASSET_GUIDE.md
 !tests/tarot/img/*.webp
+!tests/tarot/img/SOURCES.md
 .playwright-mcp/
 .playwright-cli/
 /output/playwright/

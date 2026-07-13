@@ -150,10 +150,12 @@ body {
   box-shadow: 0 2px 16px rgba(0,0,0,0.05);
 }
 .figure-card .figure-avatar {
-  width: 106px; height: 106px; flex-shrink: 0;
+  width: 106px; height: 132px; flex-shrink: 0; overflow: hidden;
+  border: 1px solid var(--wt-color-border); border-radius: 14px;
+  background: var(--wt-test-illustration-bg);
 }
-.figure-card .figure-avatar svg {
-  width: 100%; height: 100%; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
+.figure-card .figure-avatar__image {
+  width: 100%; height: 100%; display: block; object-fit: cover;
 }
 .figure-card .figure-info h3 { font-size: 1.5rem; margin-bottom: 0.25rem; }
 .figure-card .figure-info .figure-title {
@@ -209,10 +211,11 @@ body {
   padding: 1.25rem; display: flex; gap: 1rem; align-items: center;
 }
 .other-figure .mini-avatar {
-  width: 54px; height: 54px; flex-shrink: 0;
+  width: 54px; height: 68px; flex-shrink: 0; overflow: hidden;
+  border-radius: 10px; background: var(--wt-test-illustration-bg);
 }
-.other-figure .mini-avatar svg {
-  width: 100%; height: 100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+.other-figure .mini-avatar__image {
+  width: 100%; height: 100%; display: block; object-fit: cover;
 }
 .other-figure .mini-info h4 { font-size: 0.95rem; }
 .other-figure .mini-info .mini-title { font-size: 0.78rem; color: var(--text-secondary); }
@@ -281,6 +284,232 @@ body {
 .history-page, .encyclopedia-page {
   min-height: 100vh;
   animation: fadeIn 0.4s ease;
+}
+
+/* 人格档案馆 */
+.history-archive {
+  max-width: 1200px !important;
+}
+
+.archive-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.archive-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.86fr) minmax(420px, 1.14fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.archive-directory {
+  display: grid;
+  gap: 8px;
+}
+
+.archive-directory__item {
+  min-height: 108px;
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--wt-color-border);
+  border-radius: var(--wt-radius-md);
+  color: var(--wt-color-text);
+  background: var(--wt-color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.archive-directory__item:hover,
+.archive-directory__item[aria-current="true"] {
+  border-color: var(--test-primary);
+  background: var(--test-soft);
+}
+
+.archive-directory__portrait {
+  width: 70px;
+  height: 82px;
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--wt-test-illustration-bg);
+}
+
+.archive-directory__image,
+.archive-record__image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.archive-directory__copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.archive-directory__copy strong {
+  color: var(--wt-color-text);
+  font-size: 1rem;
+}
+
+.archive-directory__copy small {
+  overflow: hidden;
+  color: var(--wt-color-text-secondary);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-directory__copy em {
+  color: var(--test-primary);
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.archive-record {
+  position: sticky;
+  top: 88px;
+  min-height: 620px;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid var(--wt-color-border);
+  border-radius: var(--wt-radius-xl);
+  color: var(--wt-color-text);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--test-primary) 5%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--wt-color-surface);
+  box-shadow: var(--wt-shadow-sm);
+}
+
+.archive-record__portrait {
+  width: 148px;
+  height: 197px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid var(--wt-color-border);
+  border-radius: 16px;
+  background: var(--wt-test-illustration-bg);
+}
+
+.archive-record__source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 10px 0 20px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.archive-record__source span {
+  padding: 3px 8px;
+  border: 1px solid var(--wt-color-border);
+  border-radius: 999px;
+}
+
+.archive-record__source a {
+  color: var(--primary);
+  text-underline-offset: 3px;
+}
+
+.archive-record h2 {
+  margin: 0;
+  color: var(--test-ink);
+  font: 760 clamp(2rem, 4vw, 3.4rem)/1 var(--wt-font-display);
+}
+
+.archive-record__title {
+  margin: 8px 0 20px;
+  color: var(--wt-color-text-secondary);
+}
+
+.archive-record blockquote {
+  margin: 20px 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--test-accent);
+  color: var(--test-primary);
+  background: color-mix(in srgb, var(--test-accent) 8%, var(--wt-color-surface));
+  font-family: serif;
+  line-height: 1.7;
+}
+
+.archive-record > p,
+.archive-record__title {
+  line-height: 1.8;
+}
+
+.archive-record h3 {
+  margin: 24px 0 8px;
+  font-size: 0.95rem;
+}
+
+.archive-profile {
+  display: grid;
+  gap: 9px;
+  margin-top: 24px;
+}
+
+.archive-profile > span {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 9px;
+  font: 700 0.72rem/1 var(--wt-font-mono);
+}
+
+.archive-profile i {
+  height: 6px;
+  display: block;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--wt-color-surface-soft);
+}
+
+.archive-profile em {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--test-primary);
+}
+
+.history-dimension-ranking {
+  height: auto !important;
+  display: grid;
+  gap: 4px;
+}
+
+.history-dimension-ranking__item {
+  display: grid;
+  grid-template-columns: 30px 150px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--wt-color-border);
+  color: var(--wt-color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.history-dimension-ranking__item strong { color: var(--wt-color-text); }
+.history-dimension-ranking__item small { color: var(--wt-color-text-secondary); }
+.history-dimension-ranking__item i { height: 7px; display: block; overflow: hidden; border-radius: 99px; background: var(--wt-color-surface-soft); }
+.history-dimension-ranking__item b { height: 100%; display: block; border-radius: inherit; }
+.history-dimension-ranking__item em { color: var(--wt-color-text); font-style: normal; font-family: var(--wt-font-mono); }
+
+@media (max-width: 899px) {
+  .archive-layout { display: block; }
+  .archive-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .archive-directory__item { min-height: 150px; grid-template-columns: 1fr; align-content: start; }
+  .archive-directory__portrait { width: 70px; height: 82px; }
+  .archive-record { display: none; }
+  .archive-directory__copy small { white-space: normal; }
+  .history-dimension-ranking__item { grid-template-columns: 24px minmax(92px, 1fr) 30px; }
+  .history-dimension-ranking__item i { grid-column: 2 / 4; }
 }
 
 .encyclopedia-page .other-figure:hover {

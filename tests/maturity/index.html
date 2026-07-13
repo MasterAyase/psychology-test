@@ -110,48 +110,62 @@
     <!-- ==================== 结果页 ==================== -->
     <section id="results-section" class="section results-section" style="display:none;">
       <div class="results-container">
+        <header class="maturity-result-cover">
+          <div class="maturity-contour" id="maturity-badge" aria-hidden="true"></div>
+          <div class="maturity-result-cover__copy">
+            <p class="wt-kicker">GROWTH PROFILE · 成长剖面</p>
+            <h1 class="results-title">你的心理成熟度观察报告</h1>
+            <p class="results-level" id="results-level"></p>
+            <p class="results-summary" id="results-summary"></p>
+          </div>
+        </header>
 
-        <!-- 结果头部 -->
-        <div class="results-header">
-          <div class="maturity-badge" id="maturity-badge"></div>
-          <h1 class="results-title">你的心理成熟度报告</h1>
-          <p class="results-level" id="results-level"></p>
-          <p class="results-summary" id="results-summary"></p>
-        </div>
+        <aside class="maturity-understanding" aria-labelledby="maturity-understanding-title">
+          <h2 id="maturity-understanding-title">如何理解这份结果</h2>
+          <p>它呈现的是你近期在八个成长维度上的自评状态，不定义个人价值，也不代表固定不变的人格等级。生活情境、压力和自我觉察都会影响本次结果。</p>
+        </aside>
 
-        <!-- 综合评分卡片 -->
-        <div class="score-cards" id="score-cards"></div>
+        <section aria-labelledby="maturity-insights-title">
+          <div class="maturity-section-heading">
+            <p class="wt-kicker">KEY INSIGHTS</p>
+            <h2 id="maturity-insights-title">先看三个最重要的理解点</h2>
+          </div>
+          <div class="maturity-insight-list" id="maturity-insights"></div>
+        </section>
 
-        <!-- 雷达图 -->
-        <div class="chart-section">
-          <h2 class="chart-title">八维成熟度雷达图</h2>
-          <div class="chart-container" id="radar-chart"></div>
-        </div>
+        <div class="score-cards" id="score-cards" aria-label="结果摘要"></div>
 
-        <!-- 柱状图 -->
-        <div class="chart-section">
-          <h2 class="chart-title">维度得分对比</h2>
-          <div class="chart-container" id="bar-chart"></div>
-        </div>
+        <section class="chart-section" aria-labelledby="maturity-radar-title">
+          <div class="maturity-section-heading">
+            <p class="wt-kicker">DIMENSION MAP</p>
+            <h2 class="chart-title" id="maturity-radar-title">八维成长轮廓</h2>
+            <p id="radar-summary" class="chart-summary"></p>
+          </div>
+          <div class="chart-container" id="radar-chart" role="img" aria-labelledby="maturity-radar-title radar-summary"></div>
+        </section>
 
-        <!-- 维度详细解读 -->
-        <div class="analysis-section">
-          <h2 class="chart-title">各维度详细解读</h2>
+        <section class="chart-section" aria-labelledby="dimension-ranking-title">
+          <div class="maturity-section-heading">
+            <p class="wt-kicker">READABLE DATA</p>
+            <h2 class="chart-title" id="dimension-ranking-title">维度排序与练习方向</h2>
+          </div>
+          <div class="dimension-ranking" id="dimension-ranking"></div>
+        </section>
+
+        <section class="analysis-section" aria-labelledby="dimension-analysis-title">
+          <div class="maturity-section-heading">
+            <p class="wt-kicker">DEEP READING</p>
+            <h2 class="chart-title" id="dimension-analysis-title">按需展开详细解读</h2>
+          </div>
           <div class="dimension-analysis-list" id="dimension-analysis-list"></div>
-        </div>
+        </section>
 
-        <!-- 综合建议 -->
-        <div class="advice-section" id="advice-section"></div>
+        <section class="advice-section" id="advice-section"></section>
 
-        <!-- 操作按钮 -->
-        <div class="results-actions">
-          <button class="btn-primary" onclick="restartTest()">重新测试</button>
-          <button class="btn-secondary" onclick="showHistory()" style="margin:0 4px;">📋 历史记录</button>
-          <button class="btn-secondary" onclick="showEncyclopedia()" style="margin:0 4px;">📖 成熟度图鉴</button>
-          <button class="btn-secondary" onclick="window.print()">
-            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            打印报告
-          </button>
+        <div class="results-actions wt-sticky-actions">
+          <button class="btn-primary" onclick="showEncyclopedia()">查看成长地形图鉴</button>
+          <button class="btn-secondary" onclick="restartTest()">重新测试</button>
+          <button class="btn-secondary" onclick="showHistory()">历史记录</button>
         </div>
 
         <!-- 声明 -->
@@ -161,35 +175,56 @@
 
     <!-- ===== 成熟度图鉴页 ===== -->
     <section id="encyclopedia-section" class="section" style="display:none;">
-      <div style="max-width:780px;margin:0 auto;padding:20px 0;">
-        <div style="text-align:center;margin-bottom:32px;">
-          <h2 style="font-size:1.8rem;color:var(--primary-dark);">📖 心理成熟度图鉴</h2>
-          <p style="color:var(--text-secondary);margin-top:8px;">了解心理成熟的五个层级与八个核心维度</p>
-          <button class="btn-secondary" onclick="backToLanding()" style="margin-top:16px;">← 返回首页</button>
-        </div>
+      <div class="encyclopedia-container maturity-atlas">
+        <header class="wt-page-heading">
+          <div class="wt-page-heading__copy">
+            <p class="wt-kicker">GROWTH CONTOURS · 成长等高线</p>
+            <h1>心理成熟度图鉴</h1>
+            <p>把五个阶段看作连续成长地形中的观察区间。每个人都可能在不同维度呈现不均衡状态，区间不定义个人价值。</p>
+          </div>
+          <button class="btn-secondary" onclick="backToLanding()">返回测试主页</button>
+        </header>
 
-        <h3 style="font-size:1.2rem;color:var(--primary-dark);margin-bottom:16px;padding-left:12px;border-left:3px solid var(--primary);">🏔️ 成熟度五级阶梯</h3>
-        <div id="maturity-levels-grid"></div>
+        <section aria-labelledby="growth-terrain-title">
+          <div class="maturity-section-heading">
+            <p class="wt-kicker">CONTINUOUS TERRAIN</p>
+            <h2 id="growth-terrain-title">连续成长地形</h2>
+          </div>
+          <div class="growth-terrain" id="maturity-levels-grid"></div>
+        </section>
 
-        <h3 style="font-size:1.2rem;color:var(--primary-dark);margin:32px 0 16px;padding-left:12px;border-left:3px solid var(--accent);">📊 八维详解</h3>
-        <div class="dimension-analysis-list" id="ency-dim-list"></div>
+        <section aria-labelledby="growth-dimensions-title">
+          <div class="maturity-section-heading">
+            <p class="wt-kicker">EIGHT DIMENSIONS</p>
+            <h2 id="growth-dimensions-title">八个可练习的成长维度</h2>
+            <p>选择任一维度，查看高低分可能表现与可练习方向。</p>
+          </div>
+          <div class="dimension-atlas" id="ency-dim-list"></div>
+        </section>
       </div>
     </section>
 
     <!-- ===== 历史记录页 ===== -->
     <section id="history-section" class="section" style="display:none;">
-      <div style="max-width:700px;margin:0 auto;padding:20px 0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-          <h2 style="font-size:1.5rem;color:var(--primary-dark);">📋 测试历史记录</h2>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-secondary" onclick="clearHistory()" style="color:#D04040;border-color:#FFD0D0;font-size:0.85rem;">🗑 清空</button>
-            <button class="btn-secondary" onclick="backToLanding()" style="font-size:0.85rem;">← 返回首页</button>
+      <div class="history-container maturity-history">
+        <header class="wt-page-heading">
+          <div class="wt-page-heading__copy">
+            <p class="wt-kicker">LOCAL HISTORY · 本机记录</p>
+            <h1>心理成熟度历史记录</h1>
+            <p id="history-summary">结果只保存在当前浏览器中。</p>
           </div>
+          <button class="btn-secondary" onclick="backToLanding()">返回测试主页</button>
+        </header>
+        <div class="history-toolbar" id="history-toolbar" hidden>
+          <button class="btn-secondary" onclick="clearHistory()">清空全部记录</button>
         </div>
         <div id="history-list"></div>
-        <div id="history-empty" style="display:none;text-align:center;padding:60px 20px;">
-          <div style="font-size:64px;">📭</div>
-          <p style="color:var(--text-secondary);font-size:1.1rem;margin:16px 0;">还没有测试记录</p>
+        <div id="history-empty" class="wt-empty-state" style="display:none;">
+          <div class="wt-empty-state__visual">
+            <svg viewBox="0 0 80 56" aria-hidden="true"><path d="M10 42c9-20 19-30 30-30s21 10 30 30"/><path d="M17 42c7-14 15-21 23-21s16 7 23 21"/><path d="M26 42c4-8 9-12 14-12s10 4 14 12"/><path d="M8 46h64"/></svg>
+          </div>
+          <h2>还没有测试记录</h2>
+          <p>完成一次测试后，结果会保存在当前浏览器中，方便你回看不同阶段的状态。</p>
           <button class="btn-primary" onclick="backToLanding();startTest();">开始第一次测试</button>
         </div>
       </div>

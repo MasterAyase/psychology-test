@@ -63,16 +63,16 @@
         <div class="encyclopedia-container">
             <div class="encyclopedia-header">
                 <button class="back-btn" onclick="backFromEncyclopedia()">← 返回首页</button>
-                <h2 class="encyclopedia-title">📖 恋爱类型图鉴</h2>
-                <p class="encyclopedia-subtitle">8种恋爱人格完全档案 + 配对兼容度全解析</p>
+                <h2 class="encyclopedia-title">关系轨道图</h2>
+                <p class="encyclopedia-subtitle">从依恋焦虑与依恋回避两个核心维度，理解 8 种关系模式。</p>
             </div>
 
             <!-- 类型卡片 -->
-            <div class="encyclopedia-section-title">🎴 类型图鉴 <span class="encyclopedia-hint">（点击卡片翻转查看详情）</span></div>
+            <div class="encyclopedia-section-title">关系模式坐标 <span class="encyclopedia-hint">点击节点或目录项查看详情</span></div>
             <div class="type-cards-grid" id="type-cards-grid"></div>
 
             <!-- 配对矩阵 -->
-            <div class="encyclopedia-section-title">💞 配对兼容度矩阵 <span class="encyclopedia-hint">（点击任意类型高亮其配对 / 点击格子查看详情）</span></div>
+            <div class="encyclopedia-section-title">互动参考 <span class="encyclopedia-hint">选择两种类型，查看可能形成的互动循环</span></div>
             <div id="match-matrix"></div>
         </div>
     </section>
@@ -157,14 +157,14 @@
             <div class="score-overview" id="score-overview"></div>
 
             <!-- 雷达图 -->
-            <div class="chart-section">
-                <h3 class="section-title">📊 六维恋爱画像</h3>
+            <details class="chart-section full-data-section">
+                <summary>查看完整六维数据</summary>
                 <div class="chart-container" id="radar-chart"></div>
-            </div>
+            </details>
 
             <!-- 柱状图 -->
             <div class="chart-section">
-                <h3 class="section-title">📈 维度得分对比</h3>
+                <h3 class="section-title">六维倾向排序</h3>
                 <div class="chart-container" id="bar-chart"></div>
             </div>
 
@@ -176,13 +176,13 @@
 
             <!-- 恋爱建议 -->
             <div class="advice-section">
-                <h3 class="section-title">💡 给你的恋爱建议</h3>
+                <h3 class="section-title">关系中的三个练习方向</h3>
                 <div id="love-advice"></div>
             </div>
 
             <!-- 匹配分析 -->
             <div class="match-section">
-                <h3 class="section-title">💞 你和哪种类型最配</h3>
+                <h3 class="section-title">与不同类型的互动参考</h3>
                 <div id="match-analysis"></div>
             </div>
 

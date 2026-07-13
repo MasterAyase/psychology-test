@@ -345,6 +345,38 @@ const figures = [
   }
 ];
 
+// 人物图像均来自可追溯的公共文化资产。
+const figurePortraits = {
+  zhugeliang: ['后世画像', 'https://commons.wikimedia.org/wiki/File:Zhuge_Liang_by_Zhang_Feng.jpg'],
+  libai: ['后世画像', 'https://commons.wikimedia.org/wiki/File:LiBai.jpg'],
+  caocao: ['古籍插图', 'https://commons.wikimedia.org/wiki/File:Cao_Cao_Portrait_ROTK.jpg'],
+  sushi: ['后世画像', 'https://commons.wikimedia.org/wiki/File:Su_shi.jpg'],
+  wuzetian: ['后世画像', 'https://commons.wikimedia.org/wiki/File:A_Tang_Dynasty_Empress_Wu_Zetian.JPG'],
+  wangyangming: ['后世画像', 'https://commons.wikimedia.org/wiki/File:%E7%8E%8B%E5%AE%88%E4%BB%81.jpg'],
+  kangxi: ['宫廷画像', 'https://commons.wikimedia.org/wiki/File:Kangxi_Emperor_(3x4_cropped).jpg'],
+  xiangyu: ['后世画像', 'https://commons.wikimedia.org/wiki/File:Portraits_of_Famous_Men_-_Xiang_Wang.jpg'],
+  liubei: ['古籍插图', 'https://commons.wikimedia.org/wiki/File:Liu_Bei_Portrait.jpg'],
+  sunzi: ['后世画像', 'https://commons.wikimedia.org/wiki/File:%E5%90%B4%E5%8F%B8%E9%A9%AC%E5%AD%99%E6%AD%A6.jpg'],
+  luxun: ['1936 年历史照片', 'https://commons.wikimedia.org/wiki/File:Lu_Xun_1936.jpg'],
+  quyuan: ['后世画像', 'https://commons.wikimedia.org/wiki/File:Portraits_of_Famous_Men_-_Qu_Yuan.jpg'],
+  zhangliang: ['后世画像', 'https://commons.wikimedia.org/wiki/File:%E6%AD%B7%E4%BB%A3%E8%81%96%E8%B3%A2%E5%8D%8A%E8%BA%AB%E5%83%8F_%E5%86%8A_%E5%BC%B5%E8%89%AF_(Zhang_Liang).png'],
+  genghis: ['后世画像', 'https://commons.wikimedia.org/wiki/File:Genghis_Khan.jpg'],
+  lindaiyu: ['1879 年古籍插图', 'https://commons.wikimedia.org/wiki/File:Lin_Daiyu_Hongloumeng_Tuyong.jpg'],
+  guanyu: ['古画局部', 'https://commons.wikimedia.org/wiki/File:Guan_Yu_face_%E5%95%86%E5%96%9C%E5%85%B3%E7%BE%BD%E6%93%92%E5%B0%86%E5%9B%BE.jpg']
+};
+
+figures.forEach(figure => {
+  const [portraitLabel, sourceUrl] = figurePortraits[figure.id];
+  figure.image = `../../assets/tests/history/portraits/${figure.id}.webp`;
+  figure.imageSmall = `../../assets/tests/history/portraits/${figure.id}-240.webp`;
+  figure.portraitLabel = portraitLabel;
+  figure.sourceUrl = sourceUrl;
+});
+
+function figurePortrait(figure, className = '', loading = 'lazy') {
+  return `<img class="${className}" src="${figure.image}" srcset="${figure.imageSmall} 240w, ${figure.image} 480w" sizes="(max-width: 520px) 42vw, 240px" alt="${figure.name}${figure.portraitLabel}" width="480" height="640" loading="${loading}" decoding="async"${loading === 'eager' ? ' fetchpriority="high"' : ''} onerror="this.hidden=true">`;
+}
+
 // ===== 测试流程 =====
 function startTest() {
   document.getElementById('landing').style.display = 'none';
@@ -502,23 +534,33 @@ function showResults() {
   const top = ranked[0];
 
   document.getElementById('topFigure').innerHTML = `
-    <div class="figure-avatar">${top.avatar}</div>
+    <div class="figure-avatar">${figurePortrait(top, 'figure-avatar__image', 'eager')}</div>
     <div class="figure-info">
       <h3>${top.name}</h3>
       <div class="figure-title">${top.title}</div>
-      <div class="match-pct">匹配度 ${top.similarity}%</div>
+      <div class="match-pct">相近度 ${top.similarity}% · 基于五维距离计算</div>
       <p class="figure-desc">${top.desc}</p>
       <p class="figure-quote">"${top.quote}"</p>
-      <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary);">🎯 ${top.traits}</p>
+      <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary);">人格线索：${top.traits}</p>
     </div>
   `;
 
   renderRadarChart(scores);
+  renderHistoryChartSummary(scores);
   renderBarChart(scores);
   renderDimAnalysis(scores);
   renderOtherMatches(ranked.slice(1, 4));
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderHistoryChartSummary(scores) {
+  const values = [
+    ['开放性', scores.O], ['尽责性', scores.C], ['外向性', scores.E],
+    ['宜人性', scores.A], ['情绪稳定性', 100 - scores.N]
+  ].sort((a, b) => b[1] - a[1]);
+  const target = document.getElementById('historyChartSummary');
+  if (target) target.textContent = `本次最高维度为${values[0][0]} ${values[0][1]}，最低维度为${values.at(-1)[0]} ${values.at(-1)[1]}。`;
 }
 
 // ===== ECharts 雷达图 =====
@@ -560,23 +602,23 @@ function renderRadarChart(scores) {
 // ===== ECharts 柱状图 =====
 function renderBarChart(scores) {
   const dom = document.getElementById('barChart');
-  const chart = echarts.init(dom);
-  const dims = ['开放性O','尽责性C','外向性E','宜人性A','情绪稳定性 S'];
-  const vals = [scores.O, scores.C, scores.E, scores.A, 100 - scores.N];
-  const colors = ['#E8734A','#3B7DD8','#E8A42E','#5DA88A','#8E6BBF'];
-  chart.setOption({
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: '3%', right: '8%', bottom: '3%', containLabel: true },
-    xAxis: { max: 100, axisLabel: { formatter: '{value}%' } },
-    yAxis: { type: 'category', data: dims, axisLabel: { fontSize: 13, color: '#3C2415' }, inverse: true },
-    series: [{
-      type: 'bar',
-      data: vals.map((v, i) => ({ value: v, itemStyle: { color: colors[i], borderRadius: [0,6,6,0] } })),
-      barWidth: 22,
-      label: { show: true, position: 'right', formatter: '{c}%', color: '#3C2415', fontSize: 12 }
-    }]
-  });
-  window.addEventListener('resize', () => chart.resize());
+  const old = echarts.getInstanceByDom(dom);
+  if (old) old.dispose();
+  const dimensions = [
+    { name: '开放性', key: 'O', value: scores.O, color: '#E8734A' },
+    { name: '尽责性', key: 'C', value: scores.C, color: '#3B7DD8' },
+    { name: '外向性', key: 'E', value: scores.E, color: '#E8A42E' },
+    { name: '宜人性', key: 'A', value: scores.A, color: '#5DA88A' },
+    { name: '情绪稳定性', key: 'S', value: 100 - scores.N, color: '#8E6BBF' }
+  ].sort((a, b) => b.value - a.value);
+  dom.className = 'history-dimension-ranking';
+  dom.innerHTML = dimensions.map((dimension, index) => `
+    <div class="history-dimension-ranking__item">
+      <span>${String(index + 1).padStart(2, '0')}</span>
+      <strong>${dimension.name} <small>${dimension.key}</small></strong>
+      <i aria-hidden="true"><b style="width:${dimension.value}%;background:${dimension.color}"></b></i>
+      <em>${dimension.value}</em>
+    </div>`).join('');
 }
 
 // ===== 维度解读 =====
@@ -636,7 +678,7 @@ function renderDimAnalysis(scores) {
 function renderOtherMatches(figures) {
   const html = figures.map(f => `
     <div class="other-figure">
-      <div class="mini-avatar">${f.avatar}</div>
+      <div class="mini-avatar">${figurePortrait(f, 'mini-avatar__image')}</div>
       <div class="mini-info">
         <h4>${f.name}</h4>
         <div class="mini-title">${f.title}</div>
@@ -682,6 +724,34 @@ function showHistory() {
 function renderHistory() {
     const listEl = document.getElementById('historyList');
     const emptyEl = document.getElementById('historyEmpty');
+
+    if (window.WTestShell?.renderHistoryList) {
+        window.WTestShell.renderHistoryList({
+            container: listEl,
+            empty: emptyEl,
+            key: HISTORY_KEY,
+            toViewModel(record) {
+                if (!record || !record.scores || !record.figureName) return null;
+                const rankedDims = Object.entries(record.scores)
+                    .filter(([, value]) => Number.isFinite(value))
+                    .sort((a, b) => b[1] - a[1]);
+                const figure = figures.find(item => item.id === record.figureId);
+                return {
+                    timestamp: record.id || record.date,
+                    visual: (record.figureName || '').slice(0, 2),
+                    images: figure?.image ? [figure.image] : [],
+                    title: `${record.figureName} · 相近原型`,
+                    meta: record.date || '较早记录',
+                    detail: rankedDims.slice(0, 2).map(([key, value]) => `${key} ${value}`).join(' · '),
+                    metric: Number.isFinite(record.similarity) ? `${record.similarity}%` : ''
+                };
+            },
+            onOpen(record, sourceIndex) { viewHistory(sourceIndex); },
+            onStart() { backToLanding(); startTest(); }
+        });
+        return;
+    }
+
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
 
     if (history.length === 0) {
@@ -693,7 +763,7 @@ function renderHistory() {
 
     listEl.innerHTML = history.map((r,i) => {
         const f = figures.find(x => x.id === r.figureId);
-        const avatar = f ? f.avatar : '';
+        const avatar = f ? figurePortrait(f, 'mini-avatar__image') : '';
         return '<div class="other-figure" style="cursor:pointer;margin-bottom:8px;position:relative;" onclick="viewHistory(' + i + ')">' +
             '<div class="mini-avatar">' + avatar + '</div>' +
             '<div class="mini-info" style="flex:1;">' +
@@ -720,17 +790,18 @@ function viewHistory(index) {
     const top = ranked[0];
 
     document.getElementById('topFigure').innerHTML =
-        '<div class="figure-avatar">' + top.avatar + '</div>' +
+        '<div class="figure-avatar">' + figurePortrait(top, 'figure-avatar__image', 'eager') + '</div>' +
         '<div class="figure-info">' +
             '<h3>' + top.name + '</h3>' +
             '<div class="figure-title">' + top.title + '</div>' +
-            '<div class="match-pct">匹配度 ' + top.similarity + '%</div>' +
+            '<div class="match-pct">相近度 ' + top.similarity + '% · 基于五维距离计算</div>' +
             '<p class="figure-desc">' + top.desc + '</p>' +
             '<p class="figure-quote">"' + top.quote + '"</p>' +
-            '<p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary);">🎯 ' + top.traits + '</p>' +
+            '<p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary);">人格线索：' + top.traits + '</p>' +
         '</div>';
 
     renderRadarChart(r.scores);
+    renderHistoryChartSummary(r.scores);
     renderBarChart(r.scores);
     renderDimAnalysis(r.scores);
     renderOtherMatches(ranked.slice(1,4));
@@ -777,38 +848,61 @@ function showEncyclopedia() {
 
 function renderFigureGallery() {
     const gallery = document.getElementById('figureGallery');
-    gallery.innerHTML = figures.map(f =>
-        '<div class="other-figure" style="cursor:pointer;flex-direction:column;align-items:center;text-align:center;padding:20px 16px;transition:all 0.3s;border:2px solid transparent;" onclick="showFigureDetail(\'' + f.id + '\')" onmouseenter="this.style.borderColor=\'var(--gold)\';this.style.transform=\'translateY(-4px)\'" onmouseleave="this.style.borderColor=\'transparent\';this.style.transform=\'none\'">' +
-            '<div class="mini-avatar" style="width:80px;height:80px;margin-bottom:8px;">' + f.avatar + '</div>' +
-            '<h4>' + f.name + '</h4>' +
-            '<div class="mini-title">' + f.title + '</div>' +
-            '<p style="font-size:0.8rem;color:var(--text-secondary);margin-top:6px;line-height:1.5;">' + f.desc.substring(0,60) + '...</p>' +
-            '<p style="font-size:0.75rem;color:var(--primary);margin-top:4px;font-style:italic;">"' + f.quote.substring(0,25) + '..."</p>' +
-        '</div>'
-    ).join('');
+    const filters = document.getElementById('archiveFilters');
+    const eras = ['全部', ...new Set(figures.map(figureEra))];
+    if (!window.historyArchiveFilter) window.historyArchiveFilter = '全部';
+    filters.innerHTML = eras.map(era => `<button type="button" class="wt-chip" aria-pressed="${window.historyArchiveFilter === era}" onclick="window.historyArchiveFilter='${era}';renderFigureGallery()">${era}</button>`).join('');
+    const filtered = figures.filter(figure => window.historyArchiveFilter === '全部' || figureEra(figure) === window.historyArchiveFilter);
+    gallery.innerHTML = filtered.map((figure, index) => `
+      <button type="button" class="archive-directory__item" onclick="showFigureDetail('${figure.id}', this)" ${index === 0 ? 'aria-current="true"' : ''}>
+        <span class="archive-directory__portrait">${figurePortrait(figure, 'archive-directory__image', index === 0 ? 'eager' : 'lazy')}</span>
+        <span class="archive-directory__copy"><strong>${figure.name}</strong><small>${figureEra(figure)} · ${figure.title}</small><em>${figure.traits.split('、').slice(0, 3).join(' · ')}</em></span>
+      </button>`).join('');
+    const desktopDetail = document.getElementById('figureArchiveDetail');
+    if (filtered[0] && !window.matchMedia('(max-width: 899px)').matches) renderArchiveDetail(filtered[0]);
+    else desktopDetail.innerHTML = '';
 }
 
-function showFigureDetail(figId) {
+function figureEra(figure) {
+    const title = figure.title;
+    if (/春秋|战国/.test(title)) return '先秦';
+    if (/秦末|汉初|东汉|三国/.test(title)) return '秦汉魏晋';
+    if (/唐|武周/.test(title)) return '隋唐';
+    if (/宋/.test(title)) return '宋代';
+    if (/明/.test(title)) return '明代';
+    if (/清|红楼梦/.test(title)) return '清代';
+    if (/近代/.test(title)) return '近现代';
+    if (/蒙古/.test(title)) return '宋元';
+    return '其他';
+}
+
+function archiveDetailMarkup(figure) {
+    return `<div class="archive-record__portrait">${figurePortrait(figure, 'archive-record__image', 'eager')}</div>
+      <p class="wt-kicker">${figureEra(figure)} · CHARACTER FILE</p>
+      <h2>${figure.name}</h2>
+      <p class="archive-record__title">${figure.title}</p>
+      <p class="archive-record__source"><span>${figure.portraitLabel}</span><a href="${figure.sourceUrl}" target="_blank" rel="noopener noreferrer">查看图像来源 ↗</a></p>
+      <blockquote>“${figure.quote}”</blockquote>
+      <p>${figure.desc}</p>
+      <h3>人格线索</h3><p>${figure.traits}</p>
+      <div class="archive-profile" aria-label="五维人格轮廓">${Object.entries(figure.profile).map(([key, value]) => `<span><b>${key}</b><i><em style="width:${value}%"></em></i><strong>${value}</strong></span>`).join('')}</div>`;
+}
+
+function renderArchiveDetail(figure) {
+    const detail = document.getElementById('figureArchiveDetail');
+    detail.innerHTML = archiveDetailMarkup(figure);
+}
+
+function showFigureDetail(figId, trigger) {
     const f = figures.find(x => x.id === figId);
     if (!f) return;
-
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);';
-    overlay.innerHTML =
-        '<div style="background:#fff;border-radius:20px;padding:32px 28px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;position:relative;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2);">' +
-            '<button onclick="this.closest(\'div\').parentElement.remove()" style="position:absolute;top:12px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:#f0f0f0;font-size:1.2rem;cursor:pointer;">✕</button>' +
-            '<div style="width:100px;height:100px;margin:0 auto 16px;">' + f.avatar + '</div>' +
-            '<h2 style="color:var(--primary);">' + f.name + '</h2>' +
-            '<p style="color:var(--text-secondary);margin:4px 0 12px;">' + f.title + '</p>' +
-            '<p style="font-size:0.95rem;color:#555;line-height:1.8;text-align:left;">' + f.desc + '</p>' +
-            '<div style="background:#f5f0e8;border-radius:12px;padding:12px;margin:12px 0;font-style:italic;color:var(--primary);">"' + f.quote + '"</div>' +
-            '<p style="font-size:0.85rem;color:var(--text-secondary);">🎯 ' + f.traits + '</p>' +
-            '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;font-size:0.8rem;color:#888;">' +
-                '<span>O:' + f.profile.O + '</span><span>C:' + f.profile.C + '</span><span>E:' + f.profile.E + '</span><span>A:' + f.profile.A + '</span><span>N:' + f.profile.N + '</span>' +
-            '</div>' +
-        '</div>';
-    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
-    document.body.appendChild(overlay);
+    document.querySelectorAll('.archive-directory__item').forEach(button => button.removeAttribute('aria-current'));
+    trigger?.setAttribute('aria-current', 'true');
+    if (window.matchMedia('(max-width: 899px)').matches) {
+        window.WTestShell.openDrawer({ title: `${f.name} · 人物档案`, trigger, content: archiveDetailMarkup(f) });
+    } else {
+        renderArchiveDetail(f);
+    }
 }
 
 // ===== 分享 =====

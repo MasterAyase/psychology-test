@@ -7,7 +7,7 @@ const App = {
 
   // —— 应用状态 ——
   state: {
-    screen: 'domain',       // domain | question | spread | shuffle | draw | result | history
+    screen: 'domain',       // domain | question | spread | shuffle | draw | result | history | cards
     domain: 'general',
     question: '',
     spreadId: 'past_present_future',
@@ -16,7 +16,12 @@ const App = {
     drawnCount: 0,
     history: [],
     manageMode: false,      // 是否处于管理模式
-    selectedIndices: new Set()  // 管理模式中已选中的记录索引
+    selectedIndices: new Set(), // 管理模式中已选中的记录索引
+    cardLibraryFilter: 'all',
+    cardLibraryQuery: '',
+    cardLibrarySelectedId: 'fool',
+    cardDetailOrientation: 'upright',
+    cardDetailDomain: 'general'
   },
 
   // —— 初始化 ——
@@ -44,6 +49,9 @@ const App = {
       this._scrollToTop();
     } else if (id === 'history') {
       this._renderHistory();
+      this._scrollToTop();
+    } else if (id === 'cards') {
+      this._renderCardLibrary();
       this._scrollToTop();
     } else {
       // 其他屏幕：内容已在 HTML 中，直接滚动
@@ -84,6 +92,41 @@ const App = {
     // "查看历史记录"按钮 (首页)
     document.getElementById('btn-domain-history').addEventListener('click', () => {
       this.showScreen('history');
+    });
+    document.getElementById('btn-domain-cards').addEventListener('click', () => {
+      this.showScreen('cards');
+    });
+    document.getElementById('btn-cards-back').addEventListener('click', () => {
+      this.showScreen('domain');
+    });
+    document.getElementById('tarot-library-filters').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-card-filter]');
+      if (!button) return;
+      this.state.cardLibraryFilter = button.dataset.cardFilter;
+      this._renderCardLibrary();
+    });
+    document.getElementById('tarot-card-search').addEventListener('input', (event) => {
+      this.state.cardLibraryQuery = event.target.value.trim();
+      this._renderCardLibraryGrid();
+    });
+    document.getElementById('tarot-library-grid').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-card-id]');
+      if (!button) return;
+      this.state.cardLibrarySelectedId = button.dataset.cardId;
+      if (window.matchMedia('(max-width: 767px)').matches && window.WTestShell?.openDrawer) {
+        const card = CARD_MAP[this.state.cardLibrarySelectedId];
+        window.WTestShell.openDrawer({ title: `${card.name} · ${card.name_en}`, content: this._cardDrawerMarkup(card), trigger: button });
+      } else {
+        this._renderCardLibraryGrid();
+        this._renderCardLibraryDetail();
+      }
+    });
+    document.getElementById('tarot-library-detail').addEventListener('click', (event) => {
+      const orientation = event.target.closest('[data-card-orientation]');
+      const domain = event.target.closest('[data-card-domain]');
+      if (orientation) this.state.cardDetailOrientation = orientation.dataset.cardOrientation;
+      if (domain) this.state.cardDetailDomain = domain.dataset.cardDomain;
+      if (orientation || domain) this._renderCardLibraryDetail();
     });
 
     // "跳过问题" & "下一步" (question → spread)
@@ -299,7 +342,7 @@ const App = {
       cardEl.innerHTML = `
         <div class="stack-card-inner">
           <img class="stack-card-img" src="${cardBack}" alt=""
-               onerror="this.classList.add('hidden')" loading="lazy">
+               width="500" height="857" onerror="this.classList.add('hidden')" loading="lazy" decoding="async">
           <span class="stack-card-star">✦</span>
         </div>
       `;
@@ -334,10 +377,11 @@ const App = {
     slot.innerHTML = `
       <div class="slot-front">
         <img class="slot-face-img" src="${cardFaceUrl}" alt="${cardData.name}"
+             width="500" height="857" loading="eager" decoding="async" fetchpriority="high"
              style="transform:${cardData.reversed ? 'rotate(180deg)' : ''}">
       </div>
       <div class="slot-back">
-        <img src="${cardBackUrl}" alt="" onerror="this.classList.add('hidden')">
+        <img src="${cardBackUrl}" alt="" width="500" height="857" loading="lazy" decoding="async" onerror="this.classList.add('hidden')">
       </div>
     `;
     slot.classList.add('filled');
@@ -402,6 +446,7 @@ const App = {
 
     document.getElementById('result-spread-name').textContent = interp.meta.spread;
     document.getElementById('result-domain').textContent = interp.meta.domain;
+    document.getElementById('result-question').textContent = interp.meta.question || '未填写具体问题';
     document.getElementById('result-time').textContent =
       new Date(interp.meta.timestamp).toLocaleString('zh-CN');
 
@@ -411,12 +456,12 @@ const App = {
     // 逐牌解读
     const interpretationsEl = document.getElementById('interpretations');
     interpretationsEl.innerHTML = interp.cards.map((c, i) => `
-      <div class="interpretation-card fade-in" style="animation-delay:${i * 0.15}s">
-        <div class="card-row">
+      <details class="interpretation-card fade-in" style="animation-delay:${i * 0.08}s" ${i === 0 ? 'open' : ''}>
+        <summary>
           <img class="card-thumb" src="${getCardImageUrl(c.cardId)}"
-               alt="${c.cardName}" loading="lazy"
+               alt="${c.cardName}" width="500" height="857" loading="lazy" decoding="async"
                onerror="this.classList.add('hidden')">
-          <div style="flex:1">
+          <div>
             <div class="card-header">
               <span class="card-position-badge">第${i + 1}张 · ${c.position}</span>
               <span class="card-name-title">${c.cardName}</span>
@@ -427,14 +472,19 @@ const App = {
             <div class="keywords">
               ${c.keywords.map(k => `<span class="keyword-tag">${k}</span>`).join('')}
             </div>
-            <div class="interpretation-text">${c.fullText}</div>
           </div>
-        </div>
-      </div>
+        </summary>
+        <div class="interpretation-text">${this._cleanReadingText(c.fullText)}</div>
+      </details>
     `).join('');
 
-    // 综合总结
-    document.getElementById('summary-text').textContent = interp.summary;
+    this._renderSummarySections(interp.summary);
+
+    const adviceList = document.getElementById('result-advice-list');
+    adviceList.innerHTML = interp.cards.map((card, index) => {
+      const source = CARD_MAP[card.cardId];
+      return `<article><span>${String(index + 1).padStart(2, '0')} · ${card.position}</span><h4>${card.cardName}</h4><p>${source.advice}</p></article>`;
+    }).join('');
   },
 
   /**
@@ -448,11 +498,12 @@ const App = {
     showcase.innerHTML = cards.map((card, i) => {
       const pos = spread.positions[i];
       return `
-        <div class="showcase-card fade-in" style="animation-delay:${i * 0.2}s">
+        <div class="showcase-card fade-in ${card.reversed ? 'is-reversed' : 'is-upright'}" style="animation-delay:${i * 0.12}s">
           <img class="showcase-card-image"
                src="${getCardImageUrl(card.id)}"
                alt="${card.name}"
-               loading="lazy"
+               width="500" height="857"
+               loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" ${i === 0 ? 'fetchpriority="high"' : ''}
                onerror="this.classList.add('hidden')"
                style="transform: ${card.reversed ? 'rotate(180deg)' : ''}">
           <div class="showcase-card-position">${pos.label}</div>
@@ -463,6 +514,25 @@ const App = {
         </div>
       `;
     }).join('');
+  },
+
+  _renderSummarySections(summary) {
+    const container = document.getElementById('summary-text');
+    const marker = /[🧩📊📖🎯]\s*【([^】]+)】\n([\s\S]*?)(?=\n\n[🧩📊📖🎯]\s*【|$)/g;
+    const firstMarkerIndex = summary.search(/[🧩📊📖🎯]\s*【/);
+    const intro = firstMarkerIndex > 0 ? summary.slice(0, firstMarkerIndex).trim() : '';
+    const sections = [];
+    let match;
+    while ((match = marker.exec(summary)) !== null) sections.push({ title: match[1], body: match[2].trim() });
+    container.innerHTML = `${intro ? `<p class="summary-intro">${this._cleanReadingText(intro)}</p>` : ''}${sections.map((section, index) => `
+      <section ${index === 0 ? 'id="tarot-elements"' : ''}>
+        <h4>${section.title}</h4>
+        <p>${this._cleanReadingText(section.body).replace(/\n/g, '<br>')}</p>
+      </section>`).join('')}`;
+  },
+
+  _cleanReadingText(text) {
+    return String(text || '').replace(/[\p{Extended_Pictographic}\uFE0F]/gu, '').replace(/^\s+/gm, '').trim();
   },
 
   /**
@@ -484,7 +554,7 @@ const App = {
           animation: fadeIn 0.5s ${i * 0.2}s both;
         ">
           <img class="viz-card-image" src="${getCardImageUrl(card.id)}"
-               alt="${card.name}" loading="lazy"
+               alt="${card.name}" width="500" height="857" loading="lazy" decoding="async"
                onerror="this.classList.add('hidden')">
           <div style="
             background: var(--bg-glass);
@@ -514,6 +584,87 @@ const App = {
         </div>
       `);
     }
+  },
+
+  // —— 78 张牌典 ——
+  _renderCardLibrary() {
+    const filters = [
+      ['all', '全部 78 张'], ['major', '大阿尔卡那'], ['wands', '权杖'],
+      ['cups', '圣杯'], ['swords', '宝剑'], ['pentacles', '星币']
+    ];
+    document.getElementById('tarot-library-filters').innerHTML = filters.map(([id, label]) => `
+      <button type="button" data-card-filter="${id}" aria-pressed="${this.state.cardLibraryFilter === id}" class="${this.state.cardLibraryFilter === id ? 'active' : ''}">${label}</button>
+    `).join('');
+    document.getElementById('tarot-card-search').value = this.state.cardLibraryQuery;
+    this._renderCardLibraryGrid();
+    this._renderCardLibraryDetail();
+  },
+
+  _cardGroup(card) {
+    if (card.arcana === 'major') return '大阿尔卡那';
+    return { wands: '权杖', cups: '圣杯', swords: '宝剑', pentacles: '星币' }[card.suit] || '小阿尔卡那';
+  },
+
+  _filteredLibraryCards() {
+    const filter = this.state.cardLibraryFilter;
+    const query = this.state.cardLibraryQuery.toLowerCase();
+    return TAROT_DECK.filter(card => {
+      const inGroup = filter === 'all' || (filter === 'major' ? card.arcana === 'major' : card.suit === filter);
+      const searchable = `${card.name} ${card.name_en} ${this._cardGroup(card)}`.toLowerCase();
+      return inGroup && (!query || searchable.includes(query));
+    });
+  },
+
+  _renderCardLibraryGrid() {
+    const container = document.getElementById('tarot-library-grid');
+    const cards = this._filteredLibraryCards();
+    container.innerHTML = cards.length ? cards.map(card => `
+      <button type="button" class="tarot-library-card ${this.state.cardLibrarySelectedId === card.id ? 'selected' : ''}" data-card-id="${card.id}" aria-pressed="${this.state.cardLibrarySelectedId === card.id}">
+        <img src="${getCardImageUrl(card.id)}" alt="${card.name}牌面" width="500" height="857" loading="lazy" decoding="async" onerror="this.hidden=true">
+        <span><strong>${card.name}</strong><small>${card.name_en}</small><em>${this._cardGroup(card)}</em></span>
+      </button>`).join('') : '<div class="tarot-library-empty">没有找到匹配的牌名，请尝试其他关键词。</div>';
+  },
+
+  _renderCardLibraryDetail() {
+    const card = CARD_MAP[this.state.cardLibrarySelectedId] || this._filteredLibraryCards()[0];
+    const container = document.getElementById('tarot-library-detail');
+    if (!card) {
+      container.innerHTML = '';
+      return;
+    }
+    const orientation = this.state.cardDetailOrientation;
+    const domain = this.state.cardDetailDomain;
+    const meaning = orientation === 'reversed' ? card.meaning_reversed : card.meaning_upright;
+    const keywords = orientation === 'reversed' ? card.keywords_reversed : card.keywords_upright;
+    const domains = [['love','感情'],['career','事业'],['study','学业'],['finance','财运'],['general','综合']];
+    container.innerHTML = `
+      <div class="tarot-library-detail__hero">
+        <img src="${getCardImageUrl(card.id)}" alt="${card.name}牌面" width="500" height="857" loading="eager" decoding="async" fetchpriority="high" onerror="this.hidden=true">
+        <div><p>${this._cardGroup(card)} · ${card.number ?? ''}</p><h2>${card.name}</h2><span>${card.name_en}</span><small>${card.description}</small></div>
+      </div>
+      <div class="tarot-detail-tabs" aria-label="正逆位切换">
+        <button type="button" data-card-orientation="upright" aria-pressed="${orientation === 'upright'}">↑ 正位</button>
+        <button type="button" data-card-orientation="reversed" aria-pressed="${orientation === 'reversed'}">↓ 逆位</button>
+      </div>
+      <div class="tarot-detail-keywords">${keywords.map(keyword => `<span>${keyword}</span>`).join('')}</div>
+      <section><h3>${orientation === 'reversed' ? '逆位' : '正位'}释义</h3><p>${meaning}</p></section>
+      <section><h3>象征符号</h3><p>${card.symbolism}</p></section>
+      <div class="tarot-detail-tabs tarot-detail-domains" aria-label="领域切换">${domains.map(([id,label]) => `<button type="button" data-card-domain="${id}" aria-pressed="${domain === id}">${label}</button>`).join('')}</div>
+      <section><h3>${DOMAINS[domain].name}领域</h3><p>${card.insights[domain]}</p></section>
+      <section class="tarot-detail-advice"><h3>行动建议</h3><p>${card.advice}</p></section>`;
+  },
+
+  _cardDrawerMarkup(card) {
+    const domains = [['love','感情'],['career','事业'],['study','学业'],['finance','财运'],['general','综合']];
+    return `<article class="tarot-card-drawer">
+      <img src="${getCardImageUrl(card.id)}" alt="${card.name}牌面" width="500" height="857" loading="lazy" decoding="async" onerror="this.hidden=true">
+      <p>${card.description}</p>
+      <details open><summary>↑ 正位释义</summary><p>${card.meaning_upright}</p></details>
+      <details><summary>↓ 逆位释义</summary><p>${card.meaning_reversed}</p></details>
+      <details><summary>象征符号</summary><p>${card.symbolism}</p></details>
+      <details><summary>五个领域</summary>${domains.map(([id,label]) => `<section><h3>${label}</h3><p>${card.insights[id]}</p></section>`).join('')}</details>
+      <section class="tarot-detail-advice"><h3>行动建议</h3><p>${card.advice}</p></section>
+    </article>`;
   },
 
   // —— 历史记录 ——
@@ -563,6 +714,46 @@ const App = {
 
   _renderHistory() {
     const container = document.getElementById('history-list');
+    if (window.WTestShell?.renderHistoryList) {
+      document.getElementById('manage-toolbar').style.display = 'none';
+      document.getElementById('btn-manage-mode').style.display = 'none';
+      document.getElementById('btn-clear-all').style.display = 'none';
+      window.WTestShell.renderHistoryList({
+        container,
+        key: 'tarot-history',
+        toViewModel: (record) => {
+          if (!record || !record.interpretation || !record.spreadId) return null;
+          const cards = record.interpretation.cards || [];
+          return {
+            timestamp: record.timestamp || record.interpretation.meta?.timestamp,
+            visual: cards.slice(0, 3).map(card => card.cardName?.slice(0, 1) || '牌').join(''),
+            images: cards.slice(0, 3).map(card => getCardImageUrl(card.cardId)),
+            title: `${record.spreadName || '塔罗牌阵'} · ${record.domainName || '综合'}`,
+            meta: new Date(record.timestamp || record.interpretation.meta?.timestamp).toLocaleString('zh-CN'),
+            detail: record.question || '未填写具体问题',
+            metric: `${cards.length} 张`
+          };
+        },
+        onOpen: (record) => {
+          this.state.spreadId = record.spreadId;
+          this.state.domain = record.domain;
+          this.state.question = record.question;
+          this.state.interpretation = record.interpretation;
+          this.state.reading = {
+            spread: SPREADS[record.spreadId],
+            cards: record.interpretation.cards.map((card, index) => ({
+              ...CARD_MAP[card.cardId],
+              reversed: card.reversed,
+              position: SPREADS[record.spreadId].positions[index]
+            }))
+          };
+          this.showScreen('result');
+        },
+        onStart: () => this._reset(),
+        onStorageChange: () => this._loadHistory()
+      });
+      return;
+    }
     if (this.state.history.length === 0) {
       container.innerHTML = '<div class="history-empty">📜 还没有占卜记录<br>开启你的第一次塔罗之旅吧</div>';
       // 隐藏管理模式工具栏
@@ -835,6 +1026,9 @@ const App = {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
+
+window.showEncyclopedia = () => App.showScreen('cards');
+window.showHistory = () => App.showScreen('history');
 
 // —— 启动应用 ——
 document.addEventListener('DOMContentLoaded', () => App.init());

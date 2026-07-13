@@ -229,6 +229,51 @@ const HISTORY_KEY = 'love_type_test_history';
 const MAX_HISTORY = 20;
 let viewingHistoryId = null;
 let resultsShown = false;
+let currentResultTypeKey = null;
+
+const RELATIONSHIP_POINTS = {
+    secure: { anxiety: 24, avoidance: 24 },
+    rational_calm: { anxiety: 38, avoidance: 34 },
+    romantic_sweet: { anxiety: 70, avoidance: 20 },
+    anxious: { anxiety: 84, avoidance: 30 },
+    possessive_dominant: { anxiety: 76, avoidance: 48 },
+    chaotic: { anxiety: 76, avoidance: 78 },
+    avoidant: { anxiety: 30, avoidance: 82 },
+    independent_solo: { anxiety: 18, avoidance: 68 }
+};
+
+function relationshipVisual(typeKey) {
+    const type = LOVE_TYPES[typeKey] || LOVE_TYPES.secure;
+    return `<picture class="relationship-illustration">
+        <source srcset="../../assets/tests/love/atlas/${typeKey}-360.webp 360w, ../../assets/tests/love/atlas/${typeKey}.webp 720w" sizes="(max-width: 480px) 96px, 160px" type="image/webp">
+        <img src="../../assets/tests/love/atlas/${typeKey}.webp" alt="${type.name}关系场景插画" width="720" height="480" loading="lazy" decoding="async">
+    </picture>`;
+}
+
+function relationshipThumbnail(typeKey) {
+    const point = RELATIONSHIP_POINTS[typeKey] || RELATIONSHIP_POINTS.secure;
+    const x = 12 + point.anxiety * 0.76;
+    const y = 88 - point.avoidance * 0.76;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="16" fill="#f7edf3"/><path d="M12 88H88M12 88V12" stroke="#c9a6b7" stroke-width="2"/><path d="M12 50H88M50 12V88" stroke="#ead7e0" stroke-dasharray="3 3"/><circle cx="${x}" cy="${y}" r="8" fill="#a65678"/><circle cx="${x}" cy="${y}" r="3" fill="white"/></svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+function renderRelationshipOrbit(selectedTypeKey, scorePoint) {
+    const nodes = Object.entries(RELATIONSHIP_POINTS).map(([key, point]) => {
+        const type = LOVE_TYPES[key];
+        return `<button type="button" class="relationship-orbit__node ${selectedTypeKey === key ? 'selected' : ''}" style="left:${point.anxiety}%;top:${100 - point.avoidance}%" onclick="openLoveTypeDetail('${key}', this)" aria-label="查看${type.name}详情"><span>${type.name.replace('型', '')}</span></button>`;
+    }).join('');
+    const current = scorePoint ? `<span class="relationship-orbit__current" style="left:${scorePoint.anxiety}%;top:${100 - scorePoint.avoidance}%"><b>本次</b></span>` : '';
+    return `<div class="relationship-orbit">
+        <div class="relationship-orbit__quadrant q1">渴望靠近<br>较少回避</div>
+        <div class="relationship-orbit__quadrant q2">保持距离<br>不易焦虑</div>
+        <div class="relationship-orbit__quadrant q3">渴望又防御</div>
+        <div class="relationship-orbit__quadrant q4">稳定靠近</div>
+        <span class="relationship-orbit__axis relationship-orbit__axis--x">依恋焦虑：低 → 高</span>
+        <span class="relationship-orbit__axis relationship-orbit__axis--y">依恋回避：低 → 高</span>
+        ${nodes}${current}
+    </div>`;
+}
 
 /* ===== 测试流程 ===== */
 function startTest() {
@@ -471,45 +516,27 @@ function showResults(storedScores, storedTypeKey) {
     const scores = storedScores || calculateScores();
     const typeKey = storedTypeKey || determineLoveType(scores);
     const typeData = LOVE_TYPES[typeKey];
+    currentResultTypeKey = typeKey;
 
     // 非历史模式：保存到历史记录
     if (!isHistory) {
         saveResultToHistory(scores, typeKey);
     }
 
-    // 综合分
-    const overallScore = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / 6);
-
-    // 最高维度 & 最低维度
-    const sortedDims = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-    const topDim = DIMENSIONS.find(d => d.id === sortedDims[0][0]);
-    const bottomDim = DIMENSIONS.find(d => d.id === sortedDims[5][0]);
-
     // ---- 渲染头部 ----
-    document.getElementById('badge-icon').textContent = typeData.emoji;
+    document.getElementById('badge-icon').innerHTML = relationshipVisual(typeKey);
     document.getElementById('badge-title').textContent = typeData.name;
     document.getElementById('badge-subtitle').textContent = typeData.tagline;
-    document.getElementById('result-one-liner').textContent = '💬 ' + typeData.oneLiner;
+    document.getElementById('result-one-liner').textContent = typeData.oneLiner;
 
     // ---- 评分概览 ----
     document.getElementById('score-overview').innerHTML = `
-        <div class="score-card">
-            <div class="score-value">${overallScore}</div>
-            <div class="score-label">综合得分</div>
-        </div>
-        <div class="score-card">
-            <div class="score-value">${topDim.emoji}</div>
-            <div class="score-label">最突出 · ${topDim.name}</div>
-        </div>
-        <div class="score-card">
-            <div class="score-value">${bottomDim.emoji}</div>
-            <div class="score-label">最不明显 · ${bottomDim.name}</div>
-        </div>
-        <div class="score-card">
-            <div class="score-value">${sortedDims.length}</div>
-            <div class="score-label">分析维度</div>
-        </div>
-    `;
+        <div class="relationship-result-map">${renderRelationshipOrbit(typeKey, scores)}</div>
+        <div class="relationship-core-summary">
+            <article><span>如何接近关系</span><strong>${scores.avoidance >= 55 ? '先确认空间，再逐步靠近' : '愿意主动靠近并建立连接'}</strong></article>
+            <article><span>如何回应不确定</span><strong>${scores.anxiety >= 55 ? '会快速寻找确认与回应' : '通常能等待更多信息出现'}</strong></article>
+            <article><span>如何恢复安全感</span><strong>${scores.trust >= 55 ? '依靠信任与直接沟通' : '需要稳定行动和清晰边界'}</strong></article>
+        </div>`;
 
     // ---- 雷达图 ----
     renderRadarChart(scores);
@@ -530,17 +557,17 @@ function showResults(storedScores, storedTypeKey) {
     const actionsEl = document.getElementById('result-actions');
     if (isHistory) {
         actionsEl.innerHTML = `
+            <button class="action-btn encyclopedia-btn" onclick="openCurrentLoveProfile(this)">查看${typeData.name}完整档案</button>
             <button class="action-btn retry-btn" onclick="backToHistory()">← 返回历史</button>
             <button class="action-btn retry-btn" onclick="retryTest()">🔄 重新测试</button>
             <button class="action-btn share-btn" onclick="shareResult()">📤 分享结果</button>
-            <button class="action-btn encyclopedia-btn" onclick="showEncyclopedia()">📖 恋爱图鉴</button>
         `;
     } else {
         actionsEl.innerHTML = `
+            <button class="action-btn encyclopedia-btn" onclick="openCurrentLoveProfile(this)">查看${typeData.name}完整档案</button>
             <button class="action-btn retry-btn" onclick="retryTest()">🔄 重新测试</button>
             <button class="action-btn share-btn" onclick="shareResult()">📤 分享结果</button>
             <button class="action-btn history-btn" onclick="showHistory()">📋 历史记录</button>
-            <button class="action-btn encyclopedia-btn" onclick="showEncyclopedia()">📖 恋爱图鉴</button>
         `;
     }
 
@@ -565,7 +592,7 @@ function renderRadarChart(scores) {
     dom._echart = chart;
 
     const dimData = DIMENSIONS.map(d => ({
-        name: d.emoji + ' ' + d.name,
+        name: d.name,
         max: 100,
         value: scores[d.id],
     }));
@@ -627,63 +654,19 @@ function renderRadarChart(scores) {
 function renderBarChart(scores) {
     const dom = document.getElementById('bar-chart');
     if (dom._echart) dom._echart.dispose();
-    const chart = echarts.init(dom);
-    dom._echart = chart;
-
     const sorted = DIMENSIONS.map(d => ({
-        name: d.emoji + ' ' + d.name,
+        name: d.name,
         value: scores[d.id],
         color: d.color,
     })).sort((a, b) => b.value - a.value);
-
-    const option = {
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: { type: 'shadow' },
-            backgroundColor: '#fff',
-            borderColor: '#E8DFF0',
-            textStyle: { color: '#2D1B3E', fontSize: 13 },
-            formatter: params => `<b>${params[0].name}</b><br/>得分: <b>${params[0].value}</b>`,
-        },
-        grid: { left: '3%', right: '8%', top: '5%', bottom: '8%', containLabel: true },
-        xAxis: {
-            type: 'value',
-            max: 100,
-            axisLabel: { color: '#9B8BAB', fontSize: 11, formatter: '{value}' },
-            axisLine: { lineStyle: { color: '#E8DFF0' } },
-            splitLine: { lineStyle: { color: '#F5F0FA' } },
-        },
-        yAxis: {
-            type: 'category',
-            data: sorted.map(d => d.name),
-            axisLabel: { color: '#6B5B7B', fontSize: 13, fontWeight: 600 },
-            axisLine: { lineStyle: { color: '#E8DFF0' } },
-            inverse: true,
-        },
-        series: [{
-            type: 'bar',
-            data: sorted.map((d, i) => ({
-                value: d.value,
-                itemStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                        { offset: 0, color: d.color + '99' },
-                        { offset: 1, color: d.color },
-                    ]),
-                    borderRadius: [0, 8, 8, 0],
-                },
-            })),
-            barWidth: 22,
-            label: {
-                show: true,
-                position: 'right',
-                color: '#6B5B7B',
-                fontSize: 12,
-                fontWeight: 700,
-                formatter: '{c}',
-            },
-        }],
-    };
-    chart.setOption(option);
+    dom.className = 'relationship-dimension-list';
+    dom.innerHTML = sorted.map((dimension, index) => `
+        <div class="relationship-dimension-list__item">
+            <span>${String(index + 1).padStart(2, '0')}</span>
+            <strong>${dimension.name}</strong>
+            <i aria-hidden="true"><b style="width:${dimension.value}%;background:${dimension.color}"></b></i>
+            <em>${dimension.value}</em>
+        </div>`).join('');
 }
 
 /* ===== 深度分析 ===== */
@@ -693,7 +676,7 @@ function renderDetailAnalysis(scores, typeData) {
     // 类型分析
     let html = `<div class="dimension-card" style="border-left-color: #7C5CFC;">
         <div class="dim-card-header">
-            <span class="dim-name">${typeData.emoji} 你的恋爱画像</span>
+            <span class="dim-name">你的关系模式</span>
         </div>
         <div class="dim-desc">${typeData.analysis}</div>
     </div>`;
@@ -714,7 +697,7 @@ function renderDetailAnalysis(scores, typeData) {
 
         html += `<div class="dimension-card" style="border-left-color: ${dim.color};">
             <div class="dim-card-header">
-                <span class="dim-name">${dim.emoji} ${dim.name} · <span style="font-weight:400;font-size:13px;color:var(--text-secondary);">${dim.desc}</span></span>
+                <span class="dim-name">${dim.name} · <span style="font-weight:400;font-size:13px;color:var(--text-secondary);">${dim.desc}</span></span>
                 <span class="dim-score-tag ${levelClass}">${dim.score}分 · ${level}</span>
             </div>
             <div class="dim-desc">${desc}</div>
@@ -727,11 +710,13 @@ function renderDetailAnalysis(scores, typeData) {
 /* ===== 恋爱建议 ===== */
 function renderLoveAdvice(typeData) {
     const container = document.getElementById('love-advice');
+    const groups = ['表达需求', '处理冲突', '保持边界'];
     let html = '';
 
-    typeData.advice.forEach(a => {
+    typeData.advice.slice(0, 3).forEach((a, index) => {
         html += `<div class="advice-card">
-            <h4>💡 ${a.title}</h4>
+            <span class="advice-card__group">${groups[index]}</span>
+            <h4>${a.title}</h4>
             <p>${a.text}</p>
         </div>`;
     });
@@ -796,22 +781,25 @@ function renderMatchAnalysis(myType, scores) {
     };
 
     const mm = matchMap[myType];
-    const bestType = LOVE_TYPES[mm.best];
-    const goodType = LOVE_TYPES[mm.good];
+    const steadyType = LOVE_TYPES[mm.best];
+    const contrastType = LOVE_TYPES[mm.good];
 
     container.innerHTML = `
         <div class="match-cards">
-            <div class="match-card best">
-                <div class="match-emoji">${bestType.emoji}</div>
-                <div class="match-type">${bestType.name}</div>
+            <button type="button" class="match-card best" onclick="showMatchPopup('${myType}', '${mm.best}', this)">
+                <span class="match-card__label">较易形成稳定节奏</span>
+                <div class="match-type">${steadyType.name}</div>
                 <div class="match-reason">${mm.bestReason}</div>
-            </div>
-            <div class="match-card">
-                <div class="match-emoji">${goodType.emoji}</div>
-                <div class="match-type">${goodType.name}</div>
+                <span class="match-card__action">查看互动参考</span>
+            </button>
+            <button type="button" class="match-card" onclick="showMatchPopup('${myType}', '${mm.good}', this)">
+                <span class="match-card__label">可观察彼此差异</span>
+                <div class="match-type">${contrastType.name}</div>
                 <div class="match-reason">${mm.goodReason}</div>
-            </div>
+                <span class="match-card__action">查看互动参考</span>
+            </button>
         </div>
+        <p class="relationship-reference-note">互动参考只描述可能出现的沟通节奏，不代表关系质量或结局。</p>
     `;
 }
 
@@ -899,6 +887,30 @@ function renderHistoryList() {
     const history = loadHistory();
     const listEl = document.getElementById('history-list');
     const emptyEl = document.getElementById('history-empty');
+
+    if (window.WTestShell?.renderHistoryList) {
+        window.WTestShell.renderHistoryList({
+            container: listEl,
+            empty: emptyEl,
+            key: HISTORY_KEY,
+            toViewModel(record) {
+                const typeData = LOVE_TYPES[record?.typeKey];
+                if (!record || !typeData || !record.scores) return null;
+                return {
+                    timestamp: record.id || record.date,
+                    visual: typeData.name.slice(0, 2),
+                    images: [relationshipThumbnail(record.typeKey)],
+                    title: typeData.name,
+                    meta: record.date || '较早记录',
+                    detail: `焦虑 ${record.scores.anxiety ?? '—'} · 回避 ${record.scores.avoidance ?? '—'}`,
+                    metric: Number.isFinite(record.overallScore) ? `${record.overallScore}分` : ''
+                };
+            },
+            onOpen(record) { viewHistoryResult(record.id); },
+            onStart() { backToLanding(); startTest(); }
+        });
+        return;
+    }
 
     if (history.length === 0) {
         listEl.innerHTML = '';
@@ -1196,152 +1208,73 @@ function backFromEncyclopedia() {
 function renderTypeCards() {
     const grid = document.getElementById('type-cards-grid');
     const typeKeys = Object.keys(LOVE_TYPES);
-
-    let html = '';
-    typeKeys.forEach(key => {
-        const type = LOVE_TYPES[key];
-        const traits = TYPE_TRAITS[key];
-        html += `
-            <div class="type-card" onclick="this.classList.toggle('flipped')">
-                <div class="type-card-inner">
-                    <div class="type-card-front">
-                        <div class="type-card-emoji">${type.emoji}</div>
-                        <div class="type-card-name">${type.name}</div>
-                        <div class="type-card-tagline">${type.tagline}</div>
-                        <div class="type-card-vibe">${traits.vibe}</div>
-                        <div class="type-card-hint">👆 点击翻看详情</div>
-                    </div>
-                    <div class="type-card-back">
-                        <div class="type-card-back-header">${type.emoji} ${type.name}</div>
-                        <div class="type-traits-list">
-                            ${traits.traits.map(t => `
-                                <div class="type-trait-item">
-                                    <span class="type-trait-emoji">${t.emoji}</span>
-                                    <div class="type-trait-content">
-                                        <span class="type-trait-name">${t.name}</span>
-                                        <span class="type-trait-text">${t.text}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="type-stat-bars">
-                            ${renderStatBar('情绪稳定', traits.stats.stability)}
-                            ${renderStatBar('浪漫指数', traits.stats.romance)}
-                            ${renderStatBar('情感浓度', traits.stats.intensity)}
-                            ${renderStatBar('独立精神', traits.stats.independence)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    grid.innerHTML = html;
+    grid.innerHTML = `<div class="relationship-atlas-layout">
+        <div>${renderRelationshipOrbit()}</div>
+        <div class="relationship-atlas-list">${typeKeys.map(key => {
+            const type = LOVE_TYPES[key];
+            const point = RELATIONSHIP_POINTS[key];
+            return `<button type="button" onclick="openLoveTypeDetail('${key}', this)">
+                ${relationshipVisual(key)}
+                <span><strong>${type.name}</strong><small>焦虑 ${point.anxiety} · 回避 ${point.avoidance}</small><em>${type.tagline}</em></span>
+            </button>`;
+        }).join('')}</div>
+    </div>`;
 }
 
-function renderStatBar(label, value) {
-    const color = value >= 80 ? 'var(--pink)' : value >= 50 ? 'var(--purple)' : 'var(--blue)';
-    return `
-        <div class="stat-bar-row">
-            <span class="stat-bar-label">${label}</span>
-            <div class="stat-bar-track">
-                <div class="stat-bar-fill" style="width:${value}%; background:${color};"></div>
-            </div>
-            <span class="stat-bar-value">${value}</span>
-        </div>
-    `;
+function openLoveTypeDetail(typeKey, trigger) {
+    const type = LOVE_TYPES[typeKey];
+    const traits = TYPE_TRAITS[typeKey];
+    if (!type || !traits || !window.WTestShell?.openDrawer) return;
+    window.WTestShell.openDrawer({
+        title: `${type.name} · 关系模式档案`,
+        trigger,
+        content: `<article class="relationship-dossier">
+            ${relationshipVisual(typeKey)}
+            <p class="relationship-dossier__tagline">${type.tagline}</p>
+            <section><h3>依恋模式</h3><div>${type.analysis}</div></section>
+            <section><h3>表达方式与互动循环</h3>${traits.traits.map(trait => `<p><strong>${trait.name}</strong>${trait.text}</p>`).join('')}</section>
+            <section><h3>需要的安全感</h3><p>${type.oneLiner}</p></section>
+            <section><h3>可练习方向</h3>${type.advice.slice(0, 3).map(item => `<p><strong>${item.title}</strong>${item.text}</p>`).join('')}</section>
+        </article>`
+    });
+}
+
+function openCurrentLoveProfile(trigger) {
+    showEncyclopedia();
+    window.setTimeout(() => openLoveTypeDetail(currentResultTypeKey, trigger), 0);
 }
 
 function renderMatchMatrix() {
     const container = document.getElementById('match-matrix');
     const typeKeys = Object.keys(LOVE_TYPES);
-    const typeNames = typeKeys.map(k => ({ key: k, ...LOVE_TYPES[k] }));
-
-    // 选择器
-    let selectorHTML = '<div class="match-selector"><span class="match-selector-label">试试配对：</span>';
-    typeNames.forEach((t, i) => {
-        selectorHTML += `<button class="match-selector-type" data-type="${t.key}" onclick="highlightMatch('${t.key}')">${t.emoji} ${t.name}</button>`;
-    });
-    selectorHTML += '</div>';
-
-    // 矩阵表
-    let tableHTML = '<div class="match-table-wrap"><table class="match-table"><thead><tr><th></th>';
-    typeNames.forEach(t => {
-        tableHTML += `<th class="match-th" data-type="${t.key}">${t.emoji}<br><span class="match-th-name">${t.name}</span></th>`;
-    });
-    tableHTML += '</tr></thead><tbody>';
-
-    typeNames.forEach(rowType => {
-        tableHTML += '<tr>';
-        tableHTML += `<td class="match-row-header" data-type="${rowType.key}"><span class="match-th-emoji">${rowType.emoji}</span><span class="match-th-name">${rowType.name}</span></td>`;
-        typeNames.forEach(colType => {
-            const match = MATCH_MATRIX[rowType.key][colType.key];
-            const isSelf = rowType.key === colType.key;
-            const levelClass = match.level === 3 ? 'match-high' : match.level === 2 ? 'match-mid' : 'match-low';
-            tableHTML += `
-                <td class="match-cell ${levelClass}" data-row="${rowType.key}" data-col="${colType.key}"
-                    title="${match.title}: ${match.text}"
-                    onclick="showMatchPopup('${rowType.key}', '${colType.key}')">
-                    <div class="match-cell-emoji">${match.emoji}</div>
-                    <div class="match-cell-stars">${'⭐'.repeat(match.level)}</div>
-                </td>
-            `;
-        });
-        tableHTML += '</tr>';
-    });
-
-    tableHTML += '</tbody></table></div>';
-
-    container.innerHTML = selectorHTML + tableHTML;
+    const options = typeKeys.map(key => `<option value="${key}">${LOVE_TYPES[key].name}</option>`).join('');
+    container.innerHTML = `<div class="relationship-reference">
+        <p>互动参考只描述可能出现的循环，不代表两个人是否适合。</p>
+        <div><label>类型 A<select id="love-match-a">${options}</select></label><span>×</span><label>类型 B<select id="love-match-b">${options}</select></label></div>
+        <button type="button" onclick="showSelectedLoveMatch(this)">查看互动参考</button>
+    </div>`;
+    document.getElementById('love-match-b').selectedIndex = 1;
 }
 
-function highlightMatch(typeKey) {
-    // 移除所有高亮
-    document.querySelectorAll('.match-cell.highlighted, .match-th.highlighted, .match-row-header.highlighted').forEach(el => {
-        el.classList.remove('highlighted');
-    });
-
-    // 如果没有选择类型则返回
-    if (!typeKey) return;
-
-    // 高亮行列
-    document.querySelectorAll(`.match-cell[data-row="${typeKey}"], .match-cell[data-col="${typeKey}"]`).forEach(el => {
-        el.classList.add('highlighted');
-    });
-    document.querySelectorAll(`.match-th[data-type="${typeKey}"], .match-row-header[data-type="${typeKey}"]`).forEach(el => {
-        el.classList.add('highlighted');
-    });
-
-    // 滚动选择器到可见位置
-    const matrixTable = document.querySelector('.match-table-wrap');
-    const firstCell = document.querySelector(`.match-th[data-type="${typeKey}"]`);
-    if (firstCell && matrixTable) {
-        firstCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
+function showSelectedLoveMatch(trigger) {
+    showMatchPopup(document.getElementById('love-match-a').value, document.getElementById('love-match-b').value, trigger);
 }
 
-function showMatchPopup(typeA, typeB) {
+function showMatchPopup(typeA, typeB, trigger) {
     const match = MATCH_MATRIX[typeA][typeB];
     const typeAData = LOVE_TYPES[typeA];
     const typeBData = LOVE_TYPES[typeB];
-
-    const popup = document.createElement('div');
-    popup.className = 'match-popup-overlay';
-    popup.innerHTML = `
-        <div class="match-popup-card">
-            <button class="match-popup-close" onclick="this.closest('.match-popup-overlay').remove()">✕</button>
-            <div class="match-popup-header">
-                <span class="match-popup-types">${typeAData.emoji} ${typeAData.name} × ${typeBData.emoji} ${typeBData.name}</span>
-            </div>
-            <div class="match-popup-badge">${match.emoji} ${match.title}</div>
-            <div class="match-popup-stars">${'⭐'.repeat(match.level)}</div>
-            <p class="match-popup-text">${match.text}</p>
-            <button class="match-popup-btn" onclick="this.closest('.match-popup-overlay').remove()">知道啦</button>
-        </div>
-    `;
-
-    document.body.appendChild(popup);
-    popup.addEventListener('click', (e) => {
-        if (e.target === popup) popup.remove();
+    if (!window.WTestShell?.openDrawer) return;
+    const friction = match.level === 3 ? '默契较高时也可能因为默认对方懂自己，而省略必要沟通。' : match.level === 2 ? '节奏和安全感来源不同，容易在靠近与留白之间误读对方。' : '核心需求差异较大，压力下可能形成追逐、退缩或控制循环。';
+    const advice = match.level === 1 ? '先说清边界与可接受的联系频率，冲突升温时暂停推断，改用具体事实和请求。' : '定期确认彼此需要的靠近方式与独处空间，避免用沉默或试探代替表达。';
+    window.WTestShell.openDrawer({
+        title: `${typeAData.name} × ${typeBData.name}`,
+        trigger,
+        content: `<article class="relationship-match-dossier">
+            <section><h3>容易形成的互动</h3><p>${match.text}</p></section>
+            <section><h3>可能摩擦</h3><p>${friction}</p></section>
+            <section><h3>沟通建议</h3><p>${advice}</p></section>
+            <p>此处为认知与依恋模式的趣味参考，不是关系结论。</p>
+        </article>`
     });
 }

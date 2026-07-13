@@ -733,20 +733,21 @@ function showResults() {
   saveToHistory(dimScores, overall);
   const maturity = getMaturityLevel(overall);
 
-  // 结果头部
-  document.getElementById('maturity-badge').innerHTML =
-    `<span class="badge-emoji">${maturity.emoji}</span>`;
+  // 结果封面与核心摘要
+  renderMaturityContour(maturity, overall);
   document.getElementById('maturity-badge').className =
-    `maturity-badge level-${maturity.level}`;
+    `maturity-contour level-${maturity.level}`;
   document.getElementById('results-level').textContent =
-    `${maturity.label} · 综合得分 ${overall} 分`;
+    `当前观察区间：${maturity.label} · 参考分 ${overall}`;
   document.getElementById('results-summary').textContent = maturity.summary;
+  renderCoreInsights(dimScores, overall);
 
   // 评分卡片
   renderScoreCards(dimScores, overall);
 
   // 雷达图
   renderRadarChart(dimScores);
+  renderRadarSummary(dimScores);
 
   // 柱状图
   renderBarChart(dimScores);
@@ -758,6 +759,38 @@ function showResults() {
   renderAdvice(dimScores);
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.WTestShell?.syncView();
+}
+
+function renderMaturityContour(maturity, overall) {
+  const marker = Math.max(8, Math.min(92, overall));
+  document.getElementById('maturity-badge').innerHTML = `
+    <svg viewBox="0 0 420 250" role="img" aria-label="综合参考分 ${overall}，位于${maturity.label}观察区间">
+      <path class="contour-line contour-line--back" d="M22 205 C85 170 88 128 142 139 C192 149 206 78 266 92 C324 106 329 43 398 36"/>
+      <path class="contour-line" d="M22 224 C78 195 104 169 155 176 C210 184 230 118 282 126 C338 135 351 82 398 65"/>
+      <path class="contour-line contour-line--front" d="M22 240 C91 216 120 205 172 211 C235 219 267 168 318 171 C354 174 378 145 398 131"/>
+      <line x1="${marker * 3.76 + 22}" y1="28" x2="${marker * 3.76 + 22}" y2="222" class="contour-marker-line"/>
+      <circle cx="${marker * 3.76 + 22}" cy="92" r="8" class="contour-marker"/>
+      <text x="22" y="22">持续发展</text><text x="398" y="22" text-anchor="end">更多整合</text>
+    </svg>`;
+}
+
+function renderCoreInsights(dimScores, overall) {
+  const sorted = DIMENSIONS.map(d => ({ ...d, score: dimScores[d.id] })).sort((a, b) => b.score - a.score);
+  const strongest = sorted[0];
+  const growth = sorted[sorted.length - 1];
+  const spread = strongest.score - growth.score;
+  const balanceText = spread <= 12 ? '八个维度较为均衡' : spread <= 25 ? '不同维度存在可观察差异' : '当前各维度呈现较明显的不均衡';
+  document.getElementById('maturity-insights').innerHTML = `
+    <article><span>01</span><div><h3>${strongest.name}是当前最稳固的支点</h3><p>本次得分 ${strongest.score}，可留意它如何帮助你处理近期生活中的复杂情境。</p></div></article>
+    <article><span>02</span><div><h3>${growth.name}值得优先获得练习空间</h3><p>本次得分 ${growth.score}。这不是缺陷标签，而是最容易通过具体行动看到变化的方向。</p></div></article>
+    <article><span>03</span><div><h3>${balanceText}</h3><p>最高与最低维度相差 ${spread} 分；综合参考分 ${overall} 只用于定位本次状态，不代表个人价值。</p></div></article>`;
+}
+
+function renderRadarSummary(dimScores) {
+  const sorted = DIMENSIONS.map(d => ({ ...d, score: dimScores[d.id] })).sort((a, b) => b.score - a.score);
+  document.getElementById('radar-summary').textContent =
+    `本次轮廓中，${sorted[0].name}（${sorted[0].score}）最高，${sorted.at(-1).name}（${sorted.at(-1).score}）最低。下方同时提供完整文字数据。`;
 }
 
 function renderScoreCards(dimScores, overall) {
@@ -768,6 +801,8 @@ function renderScoreCards(dimScores, overall) {
     .sort((a, b) => a[1] - b[1])[0];
   const maxName = DIMENSIONS.find(d => d.id === maxDim[0]).name;
   const minName = DIMENSIONS.find(d => d.id === minDim[0]).name;
+  const spread = maxDim[1] - minDim[1];
+  const balance = Math.max(0, 100 - spread);
 
   container.innerHTML = `
     <div class="score-card">
@@ -783,8 +818,8 @@ function renderScoreCards(dimScores, overall) {
       <div class="score-label">成长维度 · ${minName}</div>
     </div>
     <div class="score-card">
-      <div class="score-value">${DIMENSIONS.length}</div>
-      <div class="score-label">测评维度</div>
+      <div class="score-value">${balance}</div>
+      <div class="score-label">轮廓平衡参考</div>
     </div>
   `;
 }
@@ -862,81 +897,17 @@ function renderRadarChart(dimScores) {
 }
 
 function renderBarChart(dimScores) {
-  const container = document.getElementById('bar-chart');
-  const oldBar = echarts.getInstanceByDom(container);
-  if (oldBar) oldBar.dispose();
-  const chart = echarts.init(container);
-
-  const names = DIMENSIONS.map(d => d.name.split('').join('\n'));
-  const data = DIMENSIONS.map(d => dimScores[d.id]);
-  const colors = DIM_COLORS;
-  const isMobile = container.clientWidth < 500;
-
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: function(p) {
-        return `${p[0].name.replace(/\n/g, '')}<br/>得分：<b>${p[0].value}</b> / 100`;
-      }
-    },
-    grid: {
-      left: '5%',
-      right: '10%',
-      bottom: isMobile ? '18%' : '14%',
-      top: '8%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'category',
-      data: names,
-      axisLabel: {
-        fontSize: isMobile ? 11 : 13,
-        color: '#636E72',
-        interval: 0,
-        align: 'center'
-      },
-      axisTick: { show: false }
-    },
-    yAxis: {
-      type: 'value',
-      min: 0,
-      max: 100,
-      axisLabel: {
-        formatter: '{value}',
-        color: '#989DA0',
-        fontSize: isMobile ? 10 : 11
-      },
-      splitLine: {
-        lineStyle: { color: 'rgba(0,0,0,0.06)' }
-      }
-    },
-    series: [{
-      type: 'bar',
-      data: data.map((v, i) => ({
-        value: v,
-        itemStyle: {
-          color: colors[i],
-          borderRadius: v > 0 ? [6, 6, 0, 0] : [0, 0, 6, 6]
-        }
-      })),
-      barWidth: isMobile ? '60%' : '55%',
-      label: {
-        show: true,
-        position: 'top',
-        fontSize: isMobile ? 10 : 11,
-        fontWeight: 600,
-        color: '#636E72',
-        formatter: '{c}'
-      },
-      emphasis: {
-        itemStyle: { opacity: 0.8 }
-      }
-    }]
-  };
-
-  chart.setOption(option);
-  window.addEventListener('resize', () => { chart.resize(); });
+  const container = document.getElementById('dimension-ranking');
+  const sorted = DIMENSIONS.map(d => ({ ...d, score: dimScores[d.id] })).sort((a, b) => b.score - a.score);
+  container.innerHTML = sorted.map((dim, index) => `
+    <div class="dimension-ranking__item">
+      <span class="dimension-ranking__index">${String(index + 1).padStart(2, '0')}</span>
+      <div class="dimension-ranking__content">
+        <div class="dimension-ranking__label"><strong>${dim.name}</strong><span>${dim.score} / 100</span></div>
+        <div class="dimension-ranking__track" aria-hidden="true"><span style="width:${dim.score}%;background:${dim.color}"></span></div>
+        <p>${getDimSuggestion(dim.id, dim.score)}</p>
+      </div>
+    </div>`).join('');
 }
 
 function renderDimensionAnalysis(dimScores) {
@@ -955,22 +926,20 @@ function renderDimensionAnalysis(dimScores) {
     const levelText = dim.score >= 75 ? '优势维度' :
                       dim.score >= 50 ? '发展维度' : '待提升维度';
 
-    const card = document.createElement('div');
-    card.className = 'dimension-card';
-    card.style.borderLeftColor = dim.color;
+    const card = document.createElement('details');
+    card.className = 'dimension-card dimension-detail';
+    if (container.children.length === 0) card.open = true;
     card.innerHTML = `
-      <div class="dim-header">
-        <span class="dim-name" style="color:${dim.color}">
-          ${dim.icon} ${dim.name} <span style="font-size:0.75rem;color:${barColor};margin-left:6px;">${levelText}</span>
-        </span>
-        <span class="dim-score" style="color:${dim.color}">${dim.score}<span style="font-size:0.8rem">/100</span></span>
-      </div>
-      <div class="dim-bar-wrapper">
-        <div class="dim-bar-fill" style="width:${dim.score}%;background:${dim.color};"></div>
-      </div>
-      <p class="dim-interpretation">${getDimInterpretation(dim.id, dim.score)}</p>
-      <div class="dim-suggestion">
-        <strong>💡 提升建议：</strong>${getDimSuggestion(dim.id, dim.score)}
+      <summary>
+        <span class="dimension-symbol" style="--dimension-color:${dim.color}" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="M8 18c5-8 11-8 16 0"/></svg></span>
+        <span><strong>${dim.name}</strong><small style="color:${barColor}">${levelText}</small></span>
+        <span class="dim-score">${dim.score}<small>/100</small></span>
+      </summary>
+      <div class="dimension-detail__body">
+        <p class="dim-interpretation">${getDimInterpretation(dim.id, dim.score)}</p>
+        <div class="dim-suggestion">
+          <strong>可练习方向：</strong>${getDimSuggestion(dim.id, dim.score)}
+        </div>
       </div>
     `;
     container.appendChild(card);
@@ -1021,6 +990,21 @@ function renderAdvice(dimScores) {
 
 // ===== 历史记录 =====
 const HISTORY_KEY = 'maturity_test_history';
+let historyScrollPosition = 0;
+
+function readHistory() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function isValidHistoryRecord(record) {
+    return record && Number.isFinite(record.overall) && record.dimScores &&
+        DIMENSIONS.every(d => Number.isFinite(record.dimScores[d.id]));
+}
 
 function saveToHistory(dimScores, overall) {
     try {
@@ -1031,7 +1015,7 @@ function saveToHistory(dimScores, overall) {
             dimScores: dimScores,
             level: getMaturityLevel(overall).label
         };
-        const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        const history = readHistory();
         history.unshift(entry);
         if (history.length > 30) history.length = 30;
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
@@ -1042,80 +1026,164 @@ function showHistory() {
     hideAll();
     document.getElementById('history-section').style.display = 'block';
     renderHistory();
-    window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:historyScrollPosition,behavior:'smooth'});
+    window.WTestShell?.syncView();
 }
 
 function renderHistory() {
     const listEl = document.getElementById('history-list');
     const emptyEl = document.getElementById('history-empty');
-    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
 
-    if (history.length === 0) {
+    if (window.WTestShell?.renderHistoryList) {
+        window.WTestShell.renderHistoryList({
+            container: listEl,
+            empty: emptyEl,
+            key: HISTORY_KEY,
+            toViewModel(record) {
+                if (!isValidHistoryRecord(record)) return null;
+                const maturity = getMaturityLevel(record.overall);
+                const sorted = Object.entries(record.dimScores).sort((a, b) => b[1] - a[1]);
+                const topDim = DIMENSIONS.find(d => d.id === sorted[0]?.[0]);
+                const lowDim = DIMENSIONS.find(d => d.id === sorted.at(-1)?.[0]);
+                return {
+                    timestamp: record.id || record.date,
+                    visual: `L${maturity.level}`,
+                    title: `${maturity.label} · 参考分 ${record.overall}`,
+                    meta: record.date || '较早记录',
+                    detail: topDim && lowDim ? `当前支点：${topDim.name} · 关注：${lowDim.name}` : '',
+                    metric: String(record.overall)
+                };
+            },
+            onOpen(record) { viewHistory(record.id); },
+            onStart() { backToLanding(); startTest(); },
+            onCountChange(count) {
+                document.getElementById('history-summary').textContent = `结果只保存在当前浏览器中 · 共 ${count} 条`;
+            }
+        });
+        return;
+    }
+
+    const history = readHistory();
+    const validHistory = history.filter(isValidHistoryRecord);
+    const toolbar = document.getElementById('history-toolbar');
+    document.getElementById('history-summary').textContent = `结果只保存在当前浏览器中 · 共 ${validHistory.length} 条`;
+    toolbar.hidden = validHistory.length === 0;
+
+    if (validHistory.length === 0) {
         listEl.innerHTML = '';
         emptyEl.style.display = 'block';
         return;
     }
     emptyEl.style.display = 'none';
 
-    listEl.innerHTML = history.map((r,i) => {
+    const groups = { today: [], recent: [], earlier: [] };
+    const now = Date.now();
+    validHistory.forEach((record) => {
+        const age = now - Number(record.id || 0);
+        if (age < 86400000) groups.today.push(record);
+        else if (age < 604800000) groups.recent.push(record);
+        else groups.earlier.push(record);
+    });
+
+    const renderItems = (records) => records.map((r) => {
         const maturity = getMaturityLevel(r.overall);
         const sorted = Object.entries(r.dimScores).sort((a,b) => b[1] - a[1]);
         const topDim = DIMENSIONS.find(d => d.id === sorted[0][0]);
-        return '<div class="dimension-card" style="cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:16px;" onclick="viewHistory(' + i + ')">' +
-            '<span style="font-size:3rem;">' + maturity.emoji + '</span>' +
-            '<div style="flex:1;min-width:0;">' +
-                '<div style="font-weight:700;font-size:1.05rem;">' + maturity.label + ' · 综合 ' + r.overall + '分</div>' +
-                '<div style="font-size:0.82rem;color:var(--text-secondary);">' + r.date + '</div>' +
-                '<div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">' + (topDim ? '最高维度: ' + topDim.icon + ' ' + topDim.name : '') + '</div>' +
-            '</div>' +
-            '<button onclick="event.stopPropagation();deleteHistory(' + i + ')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-light);padding:4px 8px;">✕</button>' +
-        '</div>';
+        const id = String(r.id);
+        return `<article class="wt-history-item maturity-history-item">
+            <button type="button" class="maturity-history-item__main" onclick="viewHistory('${id}')">
+              <span class="maturity-history-item__visual" aria-hidden="true"><i style="left:${Math.max(8, Math.min(92, r.overall))}%"></i></span>
+              <span class="maturity-history-item__copy">
+                <strong>${maturity.label} · 参考分 ${r.overall}</strong>
+                <time datetime="${new Date(Number(r.id)).toISOString()}">${r.date}</time>
+                <small>${topDim ? `当前支点：${topDim.name} ${r.dimScores[topDim.id]}` : ''}</small>
+              </span>
+            </button>
+            <details class="maturity-history-item__menu">
+              <summary aria-label="记录操作">•••</summary>
+              <button type="button" onclick="deleteHistory('${id}')">删除这条记录</button>
+            </details>
+          </article>`;
     }).join('');
+
+    const labels = { today: '今天', recent: '最近 7 天', earlier: '更早' };
+    listEl.innerHTML = Object.entries(groups).filter(([, records]) => records.length).map(([key, records]) =>
+        `<section class="history-group"><h2>${labels[key]}</h2>${renderItems(records)}</section>`
+    ).join('');
 }
 
-function viewHistory(index) {
-    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-    if (!history[index]) return;
-    const r = history[index];
+function viewHistory(id) {
+    historyScrollPosition = window.scrollY;
+    const history = readHistory();
+    const r = history.find(record => String(record.id) === String(id));
+    if (!isValidHistoryRecord(r)) return;
 
     hideAll();
     document.getElementById('results-section').style.display = 'block';
 
     const maturity = getMaturityLevel(r.overall);
 
-    document.getElementById('maturity-badge').innerHTML = '<span class="badge-emoji">' + maturity.emoji + '</span>';
-    document.getElementById('maturity-badge').className = 'maturity-badge level-' + maturity.level;
-    document.getElementById('results-level').textContent = maturity.label + ' · 综合得分 ' + r.overall + ' 分';
+    renderMaturityContour(maturity, r.overall);
+    document.getElementById('maturity-badge').className = 'maturity-contour level-' + maturity.level;
+    document.getElementById('results-level').textContent = '当前观察区间：' + maturity.label + ' · 参考分 ' + r.overall;
     document.getElementById('results-summary').textContent = maturity.summary;
 
+    renderCoreInsights(r.dimScores, r.overall);
     renderScoreCards(r.dimScores, r.overall);
     renderRadarChart(r.dimScores);
+    renderRadarSummary(r.dimScores);
     renderBarChart(r.dimScores);
     renderDimensionAnalysis(r.dimScores);
     renderAdvice(r.dimScores);
 
     const actions = document.querySelector('.results-actions');
     if (actions) {
-        actions.innerHTML = '<button class="btn-primary" onclick="showHistory()">← 返回历史</button>' +
+        actions.innerHTML = '<button class="btn-primary" onclick="showHistory()">返回历史记录</button>' +
             '<button class="btn-secondary" onclick="restartTest()">重新测试</button>' +
-            '<button class="btn-secondary" onclick="showEncyclopedia()">📖 成熟度图鉴</button>';
+            '<button class="btn-secondary" onclick="showEncyclopedia()">查看成长地形图鉴</button>';
     }
 
     window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function deleteHistory(index) {
-    if (!confirm('确定删除这条记录吗？')) return;
-    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-    history.splice(index, 1);
+async function deleteHistory(id) {
+    const confirmed = await window.WTestShell.confirmAction('删除后可在 5 秒内撤销。', {
+        title: '删除这条测试记录？', confirmLabel: '删除记录'
+    });
+    if (!confirmed) return;
+    const history = readHistory();
+    const index = history.findIndex(record => String(record.id) === String(id));
+    if (index < 0) return;
+    const removed = history.splice(index, 1)[0];
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
     renderHistory();
+    window.WTestShell.showToast('已删除 1 条记录', {
+        actionLabel: '撤销',
+        onAction: () => {
+            const current = readHistory();
+            current.splice(Math.min(index, current.length), 0, removed);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(current));
+            renderHistory();
+        }
+    });
 }
 
-function clearHistory() {
-    if (!confirm('确定要清空所有历史记录吗？此操作不可恢复。')) return;
+async function clearHistory() {
+    const history = readHistory();
+    if (!history.length) return;
+    const confirmed = await window.WTestShell.confirmAction(`将清空当前浏览器中的 ${history.length} 条成熟度记录。`, {
+        title: '清空全部历史记录？', confirmLabel: '清空全部'
+    });
+    if (!confirmed) return;
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
+    window.WTestShell.showToast('已清空全部记录', {
+        actionLabel: '撤销',
+        onAction: () => {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+    });
 }
 
 function backToLanding() {
@@ -1143,49 +1211,57 @@ function showEncyclopedia() {
 function renderMaturityLevels() {
     const grid = document.getElementById('maturity-levels-grid');
     const levels = [
-        { level:5, emoji:'🏔️', name:'高度成熟', score:'85-100', color:'#27AE60',
+        { level:5, name:'高度成熟', score:'85–100', color:'#27AE60',
           desc:'拥有出色的情绪管理能力、清晰的自我认知和深刻的人际洞察力。能在复杂多变的环境中保持内心稳定，同时持续追求自我成长。',
           traits:'情绪稳定 | 自我觉察 | 深度共情 | 持续成长 | 平衡有度' },
-        { level:4, emoji:'🌳', name:'成熟稳定', score:'70-84', color:'#4AAD8C',
+        { level:4, name:'成熟稳定', score:'70–84', color:'#4AAD8C',
           desc:'在大多数维度上表现稳定。具备较好的自我调节能力和人际处理技巧，面对生活的挑战通常能从容应对。',
           traits:'情绪调节 | 自我认知 | 责任感 | 人际成熟 | 目标明确' },
-        { level:3, emoji:'🌿', name:'趋于成熟', score:'50-69', color:'#F4A742',
+        { level:3, name:'趋于成熟', score:'50–69', color:'#F4A742',
           desc:'正在走向心理成熟的道路上，某些维度已有较好的基础，但也存在一些需要重点关注的领域。这恰恰是成长的最佳阶段。',
           traits:'发展中的自控力 | 基本人际能力 | 偶有情绪波动 | 学习成长中' },
-        { level:2, emoji:'🌱', name:'探索发展', score:'30-49', color:'#E8A42E',
+        { level:2, name:'探索发展', score:'30–49', color:'#E8A42E',
           desc:'处于心理成熟的探索发展期。自我认知还在逐步建立，情绪和行为的调节能力正在形成。每个人的成熟都是一个渐进的过程。',
           traits:'建立自我认知 | 学习情绪管理 | 探索人际边界 | 逐步建立责任感' },
-        { level:1, emoji:'🌰', name:'初始成长', score:'0-29', color:'#C0504D',
+        { level:1, name:'初始成长', score:'0–29', color:'#C0504D',
           desc:'正处于心理成熟的初始成长阶段。请记住，心理成熟不是天生的，而是可以通过学习和练习不断提升的能力。',
           traits:'开启自我探索 | 寻求外部支持 | 学习基本情绪管理 | 建立成长意识' }
     ];
 
-    grid.innerHTML = levels.map(l =>
-        '<div class="dimension-card" style="border-left:4px solid ' + l.color + ';margin-bottom:12px;">' +
-            '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">' +
-                '<span style="font-size:2.5rem;">' + l.emoji + '</span>' +
-                '<div>' +
-                    '<div style="font-weight:700;font-size:1.1rem;">Lv.' + l.level + ' ' + l.name + '</div>' +
-                    '<div style="font-size:0.85rem;color:var(--text-secondary);">得分区间：' + l.score + '</div>' +
-                '</div>' +
-            '</div>' +
-            '<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;">' + l.desc + '</p>' +
-            '<div style="margin-top:8px;font-size:0.8rem;color:var(--text-light);">🔑 ' + l.traits + '</div>' +
-        '</div>'
-    ).join('');
+    const ascending = [...levels].reverse();
+    grid.innerHTML = `
+      <div class="growth-terrain__map" aria-hidden="true">
+        <svg viewBox="0 0 1000 300"><path d="M10 260 C170 250 205 205 340 212 C470 220 515 154 650 164 C785 174 820 80 990 48"/><path d="M10 284 C190 274 224 238 365 245 C510 252 568 200 700 205 C830 210 890 140 990 112"/></svg>
+      </div>
+      <div class="growth-terrain__stages">${ascending.map((level, index) => `
+        <article style="--stage-color:${level.color}">
+          <span class="growth-terrain__number">0${index + 1}</span>
+          <div><strong>${level.name}</strong><small>${level.score} · 观察区间</small></div>
+          <p>${level.desc}</p>
+          <ul aria-label="常见特征">${level.traits.split(' | ').map(trait => `<li>${trait}</li>`).join('')}</ul>
+        </article>`).join('')}</div>`;
 }
 
 function renderEncyDimensions() {
     const list = document.getElementById('ency-dim-list');
-    list.innerHTML = DIMENSIONS.map(d =>
-        '<div class="dimension-card" style="border-left:4px solid ' + d.color + ';">' +
-            '<div class="dim-header">' +
-                '<span class="dim-name" style="color:' + d.color + ';">' + d.icon + ' ' + d.name + '</span>' +
-            '</div>' +
-            '<p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;">' + d.desc + '</p>' +
-            '<div style="margin-top:6px;font-size:0.82rem;color:var(--text-light);">' +
-                '💡 高分段：' + getDimInterpretation(d.id, 80).substring(0, 80) + '...' +
-            '</div>' +
-        '</div>'
-    ).join('');
+    list.innerHTML = DIMENSIONS.map((d, index) => `
+      <button type="button" class="dimension-atlas__item" style="--dimension-color:${d.color}" onclick="openMaturityDimension('${d.id}', this)">
+        <span class="dimension-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="M8 ${12 + index % 5}c5 ${8 - index % 4} 11 ${-6 + index % 3} 16 0"/></svg></span>
+        <span><strong>${d.name}</strong><small>${d.desc}</small></span>
+      </button>`).join('');
+}
+
+function openMaturityDimension(id, trigger) {
+    const dimension = DIMENSIONS.find(d => d.id === id);
+    if (!dimension) return;
+    window.WTestShell.openDrawer({
+        title: dimension.name,
+        trigger,
+        content: `<div class="maturity-dimension-drawer">
+          <p>${dimension.desc}</p>
+          <section><h3>高分时可能表现</h3><p>${getDimInterpretation(id, 80)}</p></section>
+          <section><h3>低分时可能表现</h3><p>${getDimInterpretation(id, 35)}</p></section>
+          <section><h3>可练习方向</h3><p>${getDimSuggestion(id, 50)}</p></section>
+        </div>`
+    });
 }

@@ -75,18 +75,20 @@
 <section class="results" id="results">
   <div class="result-hero">
     <div class="badge">测试完成</div>
-    <h2>你的人格画像</h2>
+    <h1>与你最相近的历史人物原型</h1>
+    <p>基于五维人格距离计算，用人物档案帮助理解你的特质组合，不代表你与该人物品格等同。</p>
   </div>
 
   <div class="figure-card" id="topFigure"></div>
 
   <div class="chart-section">
     <h3>五维人格雷达图</h3>
+    <p class="chart-summary" id="historyChartSummary"></p>
     <div class="chart-box"><div id="radarChart"></div></div>
   </div>
 
   <div class="chart-section">
-    <h3>维度得分对比</h3>
+    <h3>维度排序</h3>
     <div class="chart-box"><div id="barChart"></div></div>
   </div>
 
@@ -96,7 +98,7 @@
   </div>
 
   <div class="other-matches">
-    <h3>备选匹配人物</h3>
+    <h3>相近原型</h3>
     <div class="other-grid" id="otherMatches"></div>
   </div>
 
@@ -134,13 +136,20 @@
 
 <!-- ===== 人物图鉴页 ===== -->
 <section class="encyclopedia-page" id="encyclopediaPage" style="display:none;">
-  <div style="max-width:900px;margin:0 auto;padding:2rem 1.5rem;">
-    <div style="text-align:center;margin-bottom:32px;position:relative;">
-      <button class="btn btn-secondary btn-sm" onclick="backToLanding()" style="position:absolute;left:0;top:0;">← 返回</button>
-      <h2 style="font-size:2rem;font-weight:900;color:var(--primary);">📖 历史人物图鉴</h2>
-      <p style="color:var(--text-secondary);margin-top:8px;">点击人物卡片查看详细档案 · 共16位历史人物</p>
+  <div class="encyclopedia-container history-archive">
+    <header class="wt-page-heading">
+      <div class="wt-page-heading__copy">
+        <p class="wt-kicker">ARCHIVE OF CHARACTER · 人格档案</p>
+        <h1>跨时代人格档案馆</h1>
+        <p>浏览 16 份人物原型档案。图像选自可追溯的公共文化资产，并标明画像、插图或照片类型；匹配关系仅来自大五人格模型。</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="backToLanding()">返回测试主页</button>
+    </header>
+    <div class="archive-filters" id="archiveFilters" aria-label="人物筛选"></div>
+    <div class="archive-layout">
+      <div class="archive-directory" id="figureGallery"></div>
+      <aside class="archive-record" id="figureArchiveDetail" aria-live="polite"></aside>
     </div>
-    <div class="other-grid" id="figureGallery"></div>
   </div>
 </section>
 
