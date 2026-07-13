@@ -76,9 +76,34 @@
     });
   }
 
+  function getCardSpans(count) {
+    if (count === 1) return [12];
+    if (count === 2) return [7, 5];
+    if (count === 3) return [4, 4, 4];
+    if (count === 4) return [6, 6, 6, 6];
+    if (count === 5) return [7, 5, 4, 4, 4];
+    if (count === 6) return [4, 4, 4, 4, 4, 4];
+    return [7, 5, 4, 4, 4, 6, 6];
+  }
+
+  function getTestAxis(test) {
+    const tonePositions = { scientific: 22, balanced: 50, playful: 78 };
+    const depthPositions = { quick: 22, medium: 50, deep: 78 };
+    const toneLabels = { scientific: '偏科学', balanced: '科学与趣味平衡', playful: '偏趣味' };
+    const depthLabels = { quick: '快速体验', medium: '适中深度', deep: '深度分析' };
+
+    return {
+      x: tonePositions[test.tone] || 50,
+      y: depthPositions[test.depth] || 50,
+      toneLabel: toneLabels[test.tone] || '平衡探索',
+      depthLabel: depthLabels[test.depth] || '适中深度'
+    };
+  }
+
   function renderTestCards() {
     if (!elements.testGrid) return;
     const visibleTests = getVisibleTests();
+    elements.testGrid.dataset.count = String(visibleTests.length);
 
     elements.resultSummary.textContent = state.goal === '全部' && !state.query
       ? `共 ${visibleTests.length} 项探索`
@@ -96,27 +121,51 @@
       return;
     }
 
-    elements.testGrid.innerHTML = visibleTests.map((test) => `
+    const cardSpans = getCardSpans(visibleTests.length);
+    elements.testGrid.innerHTML = visibleTests.map((test, index) => {
+      const axis = getTestAxis(test);
+      const catalogCode = `WT / ${test.id.toUpperCase()}`;
+      return `
       <a class="test-card"
          href="${escapeHtml(test.path)}"
-         style="--test-color:${escapeHtml(test.color)}"
+         style="--test-color:${escapeHtml(test.color)};--card-span:${cardSpans[index] || 4};--axis-x:${axis.x}%;--axis-y:${axis.y}%"
          aria-label="开始${escapeHtml(test.name)}，${test.questions}题，约${test.duration}分钟">
         <div class="test-card__top">
-          <span class="test-card__icon" aria-hidden="true">${test.icon}</span>
+          <span class="test-card__code">${escapeHtml(catalogCode)}</span>
           <span class="test-card__reason">${escapeHtml(test.featuredReason || test.recommendedFor || '')}</span>
         </div>
-        <h3>${escapeHtml(test.name)}</h3>
-        <p class="test-card__promise">${escapeHtml(test.resultPromise || test.description)}</p>
-        <p class="test-card__evidence">${escapeHtml(test.evidence || '趣味探索')}</p>
-        <div class="test-card__meta">
-          <span>${test.questions} 题</span>
-          <span>约 ${test.duration} 分钟</span>
+
+        <div class="test-card__content">
+          <div class="test-card__copy">
+            <div class="test-card__identity">
+              <span class="test-card__icon" aria-hidden="true">${test.icon}</span>
+              <h3>${escapeHtml(test.name)}</h3>
+            </div>
+            <p class="test-card__promise">${escapeHtml(test.resultPromise || test.description)}</p>
+            <p class="test-card__evidence">${escapeHtml(test.evidence || '趣味探索')}</p>
+          </div>
+
+          <div class="test-card__axis" role="img" aria-label="内容倾向：${escapeHtml(axis.toneLabel)}；探索深度：${escapeHtml(axis.depthLabel)}">
+            <span class="test-card__axis-label test-card__axis-label--quick" aria-hidden="true">快</span>
+            <span class="test-card__axis-label test-card__axis-label--deep" aria-hidden="true">深</span>
+            <div class="test-card__axis-plot" aria-hidden="true">
+              <span class="test-card__axis-line test-card__axis-line--x"></span>
+              <span class="test-card__axis-line test-card__axis-line--y"></span>
+              <span class="test-card__axis-dot"></span>
+            </div>
+            <div class="test-card__axis-x" aria-hidden="true"><span>科学</span><span>趣味</span></div>
+          </div>
         </div>
+
         <div class="test-card__footer">
-          <span>开始测试</span>
-          <span aria-hidden="true">→</span>
+          <div class="test-card__meta">
+            <span>${test.questions} 题</span>
+            <span>约 ${test.duration} 分钟</span>
+          </div>
+          <span class="test-card__action">开始测试 <b aria-hidden="true">→</b></span>
         </div>
-      </a>`).join('');
+      </a>`;
+    }).join('');
   }
 
   function renderRecentRecords() {
