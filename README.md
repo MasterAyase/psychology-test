@@ -114,7 +114,7 @@ npx serve .
 ```
 wingsight/
 ├── index.html                  # 主入口页面
-├── favicon.svg                 # 网站图标（翅膀大脑图案）
+├── favicon.png                 # 网站图标（翅膀大脑图案）
 ├── assets/
 │   ├── decorations/            # 首页装饰图片
 │   └── tests/                  # 测试主视觉、肖像、类型插画和资源来源记录
