@@ -306,6 +306,101 @@ const ENCYCLOPEDIA_CARDS = [
     }
 ];
 
+// ===== 棱镜地图：用三顶点位置表达三种倾向组合，不使用拟人化或污名化图像 =====
+const PRISM_POINTS = {
+    'low-dark': { x: 50, y: 70 },
+    'mach-dominant': { x: 18, y: 74 },
+    'narc-dominant': { x: 50, y: 19 },
+    'psych-dominant': { x: 82, y: 74 },
+    'mach-narc': { x: 31, y: 43 },
+    'mach-psych': { x: 50, y: 80 },
+    'narc-psych': { x: 69, y: 43 },
+    'full-dark': { x: 50, y: 51 }
+};
+const PRISM_LABELS = {
+    'low-dark': '温和协作型',
+    'mach-dominant': '策略主导型',
+    'narc-dominant': '自我呈现型',
+    'psych-dominant': '高压行动型',
+    'mach-narc': '策略表达型',
+    'mach-psych': '冷静执行型',
+    'narc-psych': '强势行动型',
+    'full-dark': '三维高响应型'
+};
+
+function displayPrismName(typeKey) {
+    return PRISM_LABELS[typeKey] || RESULT_TYPES[typeKey]?.name || '三维组合';
+}
+
+function prismMark(typeKey, compact = false) {
+    const point = PRISM_POINTS[typeKey] || PRISM_POINTS['low-dark'];
+    return `<span class="prism-mark${compact ? ' prism-mark--compact' : ''}" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><path d="M50 8 8 88h84Z"/><circle cx="${point.x}" cy="${point.y}" r="7"/></svg>
+    </span>`;
+}
+
+function prismThumbnail(typeKey) {
+    const point = PRISM_POINTS[typeKey] || PRISM_POINTS['low-dark'];
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><rect width="160" height="120" rx="20" fill="#1a1a28"/><path d="M80 12 22 105h116Z" fill="none" stroke="#6c687c" stroke-width="3"/><path d="M80 12v62M22 105l58-31 58 31" fill="none" stroke="#343448" stroke-width="2"/><circle cx="${22 + point.x * 1.16}" cy="${12 + point.y * .93}" r="9" fill="#d4af37" stroke="#fff" stroke-width="3"/></svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function renderPrismMap(activeTypeKey) {
+    return `<div class="prism-map" aria-label="暗黑三联征三顶点棱镜地图">
+        <svg class="prism-map__grid" viewBox="0 0 100 100" aria-hidden="true">
+            <defs><linearGradient id="prismGlow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d4af37" stop-opacity=".18"/><stop offset=".55" stop-color="#c41e3a" stop-opacity=".13"/><stop offset="1" stop-color="#7d8ba1" stop-opacity=".16"/></linearGradient></defs>
+            <path class="prism-map__surface" d="M50 8 8 88h84Z"/>
+            <path class="prism-map__axis" d="M50 8v53M8 88l42-27 42 27"/>
+        </svg>
+        <span class="prism-map__vertex prism-map__vertex--m"><b>M</b>策略取向</span>
+        <span class="prism-map__vertex prism-map__vertex--n"><b>N</b>自我关注</span>
+        <span class="prism-map__vertex prism-map__vertex--p"><b>P</b>冲动冷感</span>
+        ${ENCYCLOPEDIA_CARDS.map(card => {
+            const point = PRISM_POINTS[card.id];
+            return `<button type="button" class="prism-map__node${card.id === activeTypeKey ? ' is-active' : ''}" style="left:${point.x}%;top:${point.y}%" onclick="openPrismDetail('${card.id}', this)" aria-label="查看${displayPrismName(card.id)}档案"><span>${displayPrismName(card.id)}</span></button>`;
+        }).join('')}
+    </div>`;
+}
+
+function getPrismGuidance(card) {
+    const stats = card.stats;
+    const leading = Object.entries(stats).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([key]) => DIMENSIONS.find(dim => dim.id === key).name);
+    if (card.id === 'low-dark') {
+        return {
+            evidence: '三个维度均处于相对低位，更常以信任、合作和共情处理人际关系。',
+            upside: '较容易建立稳定信任，也更愿意考虑行为对他人的影响。',
+            risk: '在高竞争或边界模糊的环境中，可能过度迁就或较晚识别不对等互动。'
+        };
+    }
+    const risks = [];
+    if (stats.mach >= 70) risks.push('把关系过度工具化');
+    if (stats.narc >= 70) risks.push('过度依赖认可来稳定自我评价');
+    if (stats.psych >= 70) risks.push('在压力下忽略后果或他人感受');
+    return {
+        evidence: `${leading.join('与')}相对突出，表示你在相关情境中更容易调用这些行为策略。`,
+        upside: `${stats.mach >= 70 ? '复杂情境中的策略判断' : ''}${stats.mach >= 70 && (stats.narc >= 70 || stats.psych >= 70) ? '、' : ''}${stats.narc >= 70 ? '主动表达与目标驱动' : ''}${stats.narc >= 70 && stats.psych >= 70 ? '、' : ''}${stats.psych >= 70 ? '高压下的行动果断' : ''}可能成为适应性优势。`,
+        risk: `需要留意${risks.join('、')}。这些是可调整的行为风险，不是身份结论。`
+    };
+}
+
+function openPrismDetail(typeKey, trigger) {
+    const card = ENCYCLOPEDIA_CARDS.find(item => item.id === typeKey);
+    if (!card || !window.WTestShell?.openDrawer) return;
+    const guidance = getPrismGuidance(card);
+    window.WTestShell.openDrawer({
+        title: `${displayPrismName(typeKey)} · 棱镜档案`,
+        trigger,
+        content: `<article class="prism-dossier">
+            ${prismMark(typeKey)}
+            <p>${guidance.evidence}</p>
+            <section><h3>可适应优势</h3><p>${guidance.upside}</p></section>
+            <section><h3>需要留意的风险</h3><p>${guidance.risk}</p></section>
+            <section><h3>具体练习</h3>${card.type.advice.slice(0, 3).map(item => `<p><strong>${item.title}</strong>${item.text}</p>`).join('')}</section>
+            <small>该测试描述亚临床人格倾向，仅供自我观察，不构成临床诊断。</small>
+        </article>`
+    });
+}
+
 // ===== 6. 状态变量 =====
 let currentQuestion = 0;
 let answers = {};
@@ -556,27 +651,23 @@ function showResults(storedScores, storedTypeKey) {
     };
 
     // 头部
-    document.getElementById('resultEmoji').textContent = typeData.emoji;
-    document.getElementById('resultName').textContent = typeData.name;
-    document.getElementById('resultTagline').textContent = typeData.tagline;
+    document.getElementById('resultEmoji').innerHTML = prismMark(typeKey, true);
+    document.getElementById('resultName').textContent = displayPrismName(typeKey);
+    document.getElementById('resultTagline').textContent = '三种倾向的相对组合，仅用于自我观察，不是身份或临床标签。';
 
     // 评分卡片
     const maxDim = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
     const maxDimData = DIMENSIONS.find(d => d.id === maxDim[0]);
+    const profile = ENCYCLOPEDIA_CARDS.find(card => card.id === typeKey);
+    const guidance = getPrismGuidance(profile);
+    const normDelta = maxDim[1] - NORMS[maxDim[0]].mean;
     document.getElementById('scoreOverview').innerHTML = `
-        <div class="score-card">
-            <div class="score-value">${maxDimData.emoji}</div>
-            <div class="score-label">最突出维度 · ${maxDimData.name}</div>
-        </div>
-        <div class="score-card">
-            <div class="score-value">${maxDim[1].toFixed(2)}</div>
-            <div class="score-label">最高均分</div>
-        </div>
-        <div class="score-card">
-            <div class="score-value">3</div>
-            <div class="score-label">分析维度</div>
-        </div>
-    `;
+        <div class="prism-result-map">${renderPrismMap(typeKey)}</div>
+        <div class="prism-result-summary">
+            <article><span>主要位置</span><strong>${maxDimData.name}</strong><p>最高均分 ${maxDim[1].toFixed(2)}，${normDelta >= 0 ? '高于' : '低于'}常模 ${Math.abs(normDelta).toFixed(2)}。</p></article>
+            <article><span>可适应优势</span><p>${guidance.upside}</p></article>
+            <article><span>需要留意的风险</span><p>${guidance.risk}</p></article>
+        </div>`;
 
     // 雷达图
     renderRadarChart(scores);
@@ -603,7 +694,7 @@ function showResults(storedScores, storedTypeKey) {
             <button class="action-btn retry-btn" onclick="retakeTest()">🔄 重新测试</button>
             <button class="action-btn share-btn" onclick="shareResult()">📋 复制结果分享</button>
             <button class="action-btn history-btn" onclick="showHistory()">📋 历史记录</button>
-            <button class="action-btn encyclopedia-btn" onclick="showEncyclopedia()">📖 暗黑人格图鉴</button>
+            <button class="action-btn encyclopedia-btn" onclick="showEncyclopedia()">三维棱镜地图</button>
         `;
     }
 
@@ -625,14 +716,14 @@ function renderRadarChart(scores) {
     dom._echart = chart;
 
     const dimData = DIMENSIONS.map(d => ({
-        name: d.emoji + ' ' + d.name,
+        name: d.name,
         max: 5,
         value: scores[d.id]
     }));
 
     // 常模参考线
     const normData = DIMENSIONS.map(d => ({
-        name: d.emoji + ' ' + d.name,
+        name: d.name,
         max: 5,
         value: NORMS[d.id].mean
     }));
@@ -716,14 +807,14 @@ function renderDimensionDetails(scores, levels) {
         html += `
             <div class="dim-card" style="border-left-color: ${dim.color};">
                 <div class="dim-card-header">
-                    <span class="dim-card-name">${dim.emoji} ${dim.name}</span>
+                    <span class="dim-card-name">${dim.name}</span>
                     <span class="dim-card-score ${levelClass}">均分 ${scores[dim.id].toFixed(2)} · ${levelLabel}</span>
                 </div>
                 <div class="dim-card-bar">
                     <div class="dim-card-bar-fill" style="width:${(scores[dim.id] / 5 * 100).toFixed(0)}%; background: ${dim.color};"></div>
                 </div>
                 <p class="dim-card-desc">${desc}</p>
-                <p class="dim-card-norm">📊 常模参考：均值 ${NORMS[dim.id].mean.toFixed(1)} ± ${NORMS[dim.id].sd.toFixed(2)}</p>
+                <p class="dim-card-norm">常模参考：均值 ${NORMS[dim.id].mean.toFixed(1)} ± ${NORMS[dim.id].sd.toFixed(2)}</p>
             </div>
         `;
     });
@@ -733,10 +824,12 @@ function renderDimensionDetails(scores, levels) {
 
 // ===== 14. 类型深度分析 =====
 function renderTypeAnalysis(typeData) {
+    const card = ENCYCLOPEDIA_CARDS.find(item => item.id === typeData.id);
+    const guidance = getPrismGuidance(card);
     document.getElementById('typeAnalysis').innerHTML = `
         <div class="analysis-card">
-            <h4>${typeData.emoji} ${typeData.name} — 深度画像</h4>
-            <p class="analysis-text">${typeData.analysis}</p>
+            <h4>${displayPrismName(typeData.id)} · 行为证据摘要</h4>
+            <p class="analysis-text">${guidance.evidence}</p>
         </div>
     `;
 }
@@ -748,7 +841,7 @@ function renderAdvice(typeData) {
     typeData.advice.forEach(a => {
         html += `
             <div class="advice-card">
-                <h5>💡 ${a.title}</h5>
+                <h5>${a.title}</h5>
                 <p>${a.text}</p>
             </div>
         `;
@@ -806,7 +899,7 @@ function saveToHistory(scores, typeKey) {
             hour: '2-digit', minute: '2-digit'
         }).replace(/\//g, '/'),
         resultType: typeKey,
-        resultName: typeData.name,
+        resultName: displayPrismName(typeKey),
         resultEmoji: typeData.emoji,
         scores: { ...scores }
     };
@@ -841,6 +934,33 @@ function renderHistoryList() {
     const listEl = document.getElementById('historyList');
     const emptyEl = document.getElementById('historyEmpty');
 
+    if (window.WTestShell?.renderHistoryList) {
+        window.WTestShell.renderHistoryList({
+            container: listEl,
+            empty: emptyEl,
+            key: STORAGE_KEY,
+            toViewModel(record) {
+                if (!record || !record.scores || !record.resultName) return null;
+                const top = Object.entries(record.scores).sort((a, b) => b[1] - a[1])[0];
+                const dimension = DIMENSIONS.find(item => item.id === top?.[0]);
+                const norm = top && NORMS[top[0]];
+                const relation = norm ? (top[1] >= norm.mean ? '高于常模' : '低于常模') : '';
+                return {
+                    timestamp: record.id || record.date,
+                    visual: 'PRISM',
+                    images: [prismThumbnail(record.resultType)],
+                    title: displayPrismName(record.resultType),
+                    meta: record.date || '较早记录',
+                    detail: dimension ? `最高维度：${dimension.name} · ${relation}` : '',
+                    metric: top ? Number(top[1]).toFixed(2) : ''
+                };
+            },
+            onOpen(record) { viewHistoryResult(record.id); },
+            onStart() { backToLanding(); startTest(); }
+        });
+        return;
+    }
+
     if (history.length === 0) {
         listEl.innerHTML = '';
         emptyEl.style.display = 'block';
@@ -858,7 +978,7 @@ function renderHistoryList() {
                 <div class="history-card-main">
                     <span class="history-emoji">${record.resultEmoji}</span>
                     <div class="history-info">
-                        <div class="history-name">${record.resultName}</div>
+                <div class="history-name">${displayPrismName(record.resultType)}</div>
                         <div class="history-date">${record.date}</div>
                     </div>
                 </div>
@@ -920,52 +1040,14 @@ function showEncyclopedia() {
 
 function renderEncyclopedia() {
     const grid = document.getElementById('encyclopediaGrid');
-    let html = '';
-
-    ENCYCLOPEDIA_CARDS.forEach(card => {
-        const t = card.type;
-        html += `
-            <div class="ency-card" onclick="this.classList.toggle('flipped')">
-                <div class="ency-card-inner">
-                    <div class="ency-card-front">
-                        <div class="ency-card-emoji">${t.emoji}</div>
-                        <div class="ency-card-name">${t.name}</div>
-                        <div class="ency-card-tagline">${t.tagline}</div>
-                        <div class="ency-card-vibe">${card.vibe}</div>
-                        <div class="ency-card-hint">👆 点击翻看详情</div>
-                    </div>
-                    <div class="ency-card-back">
-                        <div class="ency-back-header">${t.emoji} ${t.name}</div>
-                        <div class="ency-traits">
-                            ${card.traits.map(tr => `
-                                <div class="ency-trait-item">
-                                    <span class="ency-trait-emoji">${tr.emoji}</span>
-                                    <div class="ency-trait-content">
-                                        <span class="ency-trait-name">${tr.name}</span>
-                                        <span class="ency-trait-text">${tr.text}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="ency-bars">
-                            ${['mach','narc','psych'].map(dim => {
-                                const dimData = DIMENSIONS.find(d => d.id === dim);
-                                return `
-                                    <div class="ency-bar-row">
-                                        <span class="ency-bar-label">${dimData.emoji} ${dimData.name}</span>
-                                        <div class="ency-bar-track">
-                                            <div class="ency-bar-fill" style="width:${card.stats[dim]}%; background:${dimData.color};"></div>
-                                        </div>
-                                        <span class="ency-bar-val">${card.stats[dim]}</span>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    grid.innerHTML = html;
+    grid.innerHTML = `<div class="prism-atlas-layout">
+        ${renderPrismMap()}
+        <div class="prism-profile-list">${ENCYCLOPEDIA_CARDS.map(card => {
+            const guidance = getPrismGuidance(card);
+            return `<button type="button" onclick="openPrismDetail('${card.id}', this)">
+                ${prismMark(card.id, true)}
+                <span><strong>${displayPrismName(card.id)}</strong><small>${guidance.evidence}</small></span>
+            </button>`;
+        }).join('')}</div>
+    </div>`;
 }

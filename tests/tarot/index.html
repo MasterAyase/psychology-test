@@ -69,6 +69,7 @@
       下一步 → 诉说你的困惑
     </button>
     <div class="action-bar">
+      <button id="btn-domain-cards" class="btn btn-ghost">查看 78 张牌典</button>
       <button id="btn-domain-history" class="btn btn-ghost">📜 查看历史记录</button>
     </div>
   </div>
@@ -163,29 +164,70 @@
   <!-- ================================================================ -->
   <div id="screen-result" class="screen">
     <div class="result-header">
+      <p class="result-kicker">CELESTIAL OBSERVATORY · 潜意识观测记录</p>
       <h2 id="result-spread-name">牌阵名称</h2>
+      <p class="result-question" id="result-question">未填写具体问题</p>
       <div class="result-meta">
         <span id="result-domain">领域</span>
         <span id="result-time">时间</span>
+        <span>已保存到此浏览器</span>
       </div>
     </div>
 
-    <!-- 抽到的牌 — 大幅展示 -->
-    <div class="result-cards-showcase" id="result-cards-showcase"></div>
+    <nav class="tarot-reading-nav" aria-label="本次解读目录">
+      <a href="#tarot-overview">牌阵总览</a>
+      <a href="#interpretations-section">逐牌解读</a>
+      <a href="#tarot-elements">元素结构</a>
+      <a href="#summary-card">综合结论</a>
+      <a href="#tarot-advice">行动建议</a>
+    </nav>
 
-    <!-- 逐张解读 -->
-    <div id="interpretations"></div>
+    <section class="tarot-reading-section" id="tarot-overview">
+      <div class="tarot-section-heading"><span>01</span><div><p>SPREAD OVERVIEW</p><h3>牌阵总览</h3></div></div>
+      <div class="result-cards-showcase" id="result-cards-showcase"></div>
+    </section>
 
-    <!-- 综合总结 -->
-    <div class="summary-card">
-      <h3>🌙 综合解读</h3>
+    <section class="tarot-reading-section" id="interpretations-section">
+      <div class="tarot-section-heading"><span>02</span><div><p>CARD BY CARD</p><h3>逐牌解读</h3></div></div>
+      <div id="interpretations"></div>
+    </section>
+
+    <div class="summary-card" id="summary-card">
+      <div class="tarot-section-heading"><span>03</span><div><p>SYNTHESIS</p><h3>元素结构与综合结论</h3></div></div>
       <div class="summary-text" id="summary-text"></div>
     </div>
 
+    <section class="tarot-advice-card" id="tarot-advice">
+      <div class="tarot-section-heading"><span>04</span><div><p>NEXT STEP</p><h3>行动建议</h3></div></div>
+      <div id="result-advice-list"></div>
+    </section>
+
     <!-- 操作按钮 -->
     <div class="action-bar">
-      <button class="btn btn-primary" id="btn-new-reading">🔄 重新占卜</button>
+      <button class="btn btn-primary" id="btn-new-reading">开始新的探索</button>
       <button class="btn" id="btn-view-history">📜 查看历史</button>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- Screen 8: 78 张牌典 -->
+  <!-- ================================================================ -->
+  <div id="screen-cards" class="screen encyclopedia-page">
+    <header class="tarot-library-header">
+      <div>
+        <p class="result-kicker">ARCANA LIBRARY · 牌典</p>
+        <h1>探索 78 张塔罗牌</h1>
+        <p>浏览现有牌面与释义资料。牌典用于象征性自我探索，不提供确定性预测。</p>
+      </div>
+      <button class="btn" id="btn-cards-back">返回占卜入口</button>
+    </header>
+    <div class="tarot-library-tools">
+      <div class="tarot-library-filters" id="tarot-library-filters" aria-label="牌组筛选"></div>
+      <label class="tarot-library-search">搜索牌名<input id="tarot-card-search" type="search" placeholder="例如：愚人、圣杯三" autocomplete="off"></label>
+    </div>
+    <div class="tarot-library-layout">
+      <div class="tarot-library-grid" id="tarot-library-grid"></div>
+      <aside class="tarot-library-detail" id="tarot-library-detail" aria-live="polite"></aside>
     </div>
   </div>
 

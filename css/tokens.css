@@ -41,6 +41,21 @@
   --wt-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --wt-duration-fast: 160ms;
   --wt-duration-normal: 280ms;
+  --wt-duration-view: 220ms;
+  --wt-duration-drawer-in: 260ms;
+  --wt-duration-drawer-out: 180ms;
+  --wt-test-accent: var(--wt-color-primary);
+  --wt-test-accent-strong: var(--wt-color-primary-strong);
+  --wt-test-accent-soft: var(--wt-color-primary-soft);
+  --wt-test-surface-themed: var(--wt-color-surface-soft);
+  --wt-test-illustration-bg: var(--wt-color-primary-soft);
+  --wt-chart-grid: var(--wt-color-border);
+  --wt-chart-text: var(--wt-color-text-secondary);
+  --wt-danger-soft: color-mix(in srgb, var(--wt-color-danger) 10%, var(--wt-color-surface));
+  --wt-z-nav: 1000;
+  --wt-z-sticky: 900;
+  --wt-z-overlay: 1100;
+  --wt-z-toast: 1200;
 }
 
 [data-theme="dark"] {

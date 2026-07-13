@@ -137,6 +137,17 @@ const ANIMALS = {
   }
 };
 
+const animalPalette = {
+  cat:'#9A615A', dog:'#B27A3E', capybara:'#8A7257', wolf:'#596A78',
+  fox:'#B86A3D', panda:'#4C5652', dolphin:'#3F7F91', owl:'#48546E',
+  lion:'#9A7135', rabbit:'#A66F78', eagle:'#6A5C47', sloth:'#75826B'
+};
+
+Object.values(ANIMALS).forEach(animal => {
+  animal.image = `../../assets/tests/animal/atlas/${animal.id}.webp`;
+  animal.color = animalPalette[animal.id];
+});
+
 // 30道题目，每题4个选项
 const QUESTIONS = [
   {
@@ -674,32 +685,56 @@ function renderResult(){
     return;
   }
   const animal = ANIMALS[state.resultAnimal];
+  const rankedAnimals = Object.entries(state.scores || {[animal.id]: 1})
+    .filter(([id, score]) => ANIMALS[id] && Number.isFinite(score))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  const maxScore = Math.max(1, ...rankedAnimals.map(([, score]) => score));
+  const evidence = rankedAnimals.map(([id, score], index) => `
+    <div class="result-evidence__item">
+      <span>${String(index + 1).padStart(2, '0')}</span>
+      <strong>${ANIMALS[id].name}</strong>
+      <i aria-hidden="true"><b style="width:${Math.round(score / maxScore * 100)}%;background:${ANIMALS[id].color}"></b></i>
+      <em>${score}</em>
+    </div>`).join('');
 
   app.innerHTML = `
     <div class="card result-card" style="border-top: 4px solid ${animal.color}">
-      <div class="result-animal-emoji">${animal.emoji}</div>
-      <div class="result-animal-name" style="color:${animal.color}">${animal.emoji} ${animal.name}</div>
+      <figure class="result-animal-visual">
+        <img src="${animal.image}" srcset="${animal.image.replace('.webp', '-300.webp')} 300w, ${animal.image} 600w" sizes="(max-width: 520px) 86vw, 420px" alt="动物人格插画：${animal.name}" width="600" height="800" loading="eager" decoding="async" fetchpriority="high" onerror="this.closest('figure')?.classList.add('image-missing');this.hidden=true">
+      </figure>
+      <p class="result-kicker">YOUR ANIMAL PROFILE · 动物人格档案</p>
+      <div class="result-animal-name" style="color:${animal.color}">${animal.name}</div>
       <div class="result-tagline">${animal.tagline}</div>
 
       <div class="result-desc">${animal.desc}</div>
 
       <div class="result-traits">
         <div class="trait-box">
-          <div class="trait-label">✨ 你的超能力</div>
+          <div class="trait-label">优势本能</div>
           <div class="trait-content">${('· ' + animal.superpower.replace(/\｜/g, '<br>· '))}</div>
         </div>
         <div class="trait-box">
-          <div class="trait-label">🐛 你的小Bug</div>
+          <div class="trait-label">容易踩坑</div>
           <div class="trait-content">${('· ' + animal.bug.replace(/\｜/g, '<br>· '))}</div>
         </div>
       </div>
 
+      <section class="result-evidence" aria-labelledby="resultEvidenceTitle">
+        <div>
+          <p class="result-kicker">BEHAVIOR EVIDENCE</p>
+          <h2 id="resultEvidenceTitle">本次行为线索</h2>
+        </div>
+        <p>以下为答题累计分最高的三个动物原型，用于解释结果来源，不代表能力高低。</p>
+        <div class="result-evidence__list">${evidence}</div>
+      </section>
+
       <div class="match-row">
         <span class="match-chip match-best">
-          💚 天选搭档：${ANIMALS[animal.bestMatch].emoji} ${ANIMALS[animal.bestMatch].name}
+          互补参考：${ANIMALS[animal.bestMatch].name}
         </span>
         <span class="match-chip match-worst">
-          ⚡ 相爱相杀：${ANIMALS[animal.worstMatch].emoji} ${ANIMALS[animal.worstMatch].name}
+          可能摩擦：${ANIMALS[animal.worstMatch].name}
         </span>
       </div>
       <p style="font-size:0.8rem;color:#aaa;margin-top:8px;">
@@ -831,6 +866,41 @@ function showHistory(){
 }
 
 function renderHistory(){
+  if(window.WTestShell?.renderHistoryList){
+    app.innerHTML = `
+      <div class="card history-page">
+        <div class="history-header">
+          <h1>动物人格历史记录</h1>
+          <div class="history-actions">
+            <button class="btn btn-outline btn-small" onclick="showEncyclopedia()">动物图鉴</button>
+            <button class="btn btn-outline btn-small" onclick="backToHome()">返回测试主页</button>
+          </div>
+        </div>
+        <div id="animal-history-list"></div>
+      </div>`;
+    window.WTestShell.renderHistoryList({
+      container: '#animal-history-list',
+      key: HISTORY_KEY,
+      toViewModel(record){
+        if(!record || !record.animalId || !record.animalName || !record.scores) return null;
+        const ranked = Object.entries(record.scores).sort((a,b) => b[1] - a[1]);
+        const second = ranked[1] && ANIMALS[ranked[1][0]];
+        return {
+          timestamp: record.timestamp,
+          visual: record.animalName.slice(0,2),
+          images: ANIMALS[record.animalId]?.image ? [ANIMALS[record.animalId].image] : [],
+          title: `${record.animalName} · 动物原型`,
+          meta: formatTime(record.timestamp),
+          detail: second ? `第二原型：${second.name}` : '完成一次动物人格探索',
+          metric: ranked[0] ? String(ranked[0][1]) : ''
+        };
+      },
+      onOpen(record, sourceIndex){ viewHistoryResult(sourceIndex); },
+      onStart(){ backToHome(); }
+    });
+    return;
+  }
+
   const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
 
   let listHTML;
@@ -857,7 +927,7 @@ function renderHistory(){
   }
 
   app.innerHTML = `
-    <div class="card">
+    <div class="card history-page">
       <div class="history-header">
         <h2>📋 历史记录</h2>
         <div class="history-actions">
@@ -960,13 +1030,18 @@ function renderEncyclopedia(){
 
   const tabClass = (key) => `ency-tab${encyFilter === key ? ' active' : ''}`;
 
-  const cardsHTML = filtered.map(a => `
-    <div class="animal-card" onclick="openAnimalDetail('${a.id}')" style="border-top:3px solid ${a.color}">
-      <span class="ac-emoji">${a.emoji}</span>
-      <div class="ac-name" style="color:${a.color}">${a.name}</div>
-      <div class="ac-tagline">${a.tagline}</div>
-    </div>
-  `).join('');
+  const cardsHTML = filtered.map(a => {
+    const traits = a.superpower.split('｜').slice(0, 3);
+    return `
+      <button type="button" class="animal-card" onclick="openAnimalDetail('${a.id}', this)" style="--animal-color:${a.color}">
+        <img class="ac-image" src="${a.image}" srcset="${a.image.replace('.webp', '-300.webp')} 300w, ${a.image} 600w, ${a.image.replace('.webp', '-1200.webp')} 1200w" sizes="(max-width: 520px) 42vw, (max-width: 900px) 46vw, 360px" alt="动物人格插画：${a.name}" width="600" height="800" loading="lazy" decoding="async" onerror="this.hidden=true">
+        <span class="ac-copy">
+          <strong class="ac-name">${a.name}</strong>
+          <small class="ac-tagline">${a.tagline}</small>
+          <span class="ac-traits">${traits.map(trait => `<em>${trait}</em>`).join('')}</span>
+        </span>
+      </button>`;
+  }).join('');
 
   // 构建CP数据
   const cpPairs = [];
@@ -980,12 +1055,12 @@ function renderEncyclopedia(){
   });
 
   const cpHTML = cpPairs.map(p => `
-    <div class="cp-pair" onclick="checkCompat('${p.a.id}','${p.b.id}')">
-      <div class="cpp-badge">💚 天选CP</div>
+    <button type="button" class="cp-pair" onclick="checkCompat('${p.a.id}','${p.b.id}')">
+      <div class="cpp-badge">互补参考</div>
       <div class="cpp-emojis">${p.a.emoji} + ${p.b.emoji}</div>
       <div class="cpp-names">${p.a.name} × ${p.b.name}</div>
       <div class="cpp-why">${p.a.bestWhy}</div>
-    </div>
+    </button>
   `).join('');
 
   const animalOptions = animalList.map(a =>
@@ -993,27 +1068,25 @@ function renderEncyclopedia(){
   ).join('');
 
   app.innerHTML = `
-    <div class="card" style="padding:32px 28px;">
+    <div class="card encyclopedia-page" style="padding:32px 28px;">
       <div class="ency-header-row">
         <button class="btn btn-outline btn-small" onclick="state.screen='hero';render();">← 返回</button>
-        <h2 style="font-size:1.3rem;font-weight:800;">🐾 动物图鉴</h2>
-        <div style="width:70px;"></div>
+        <div class="ency-title"><span>FIELD NOTES · 人格观察档案</span><h1>十二种动物人格</h1></div>
+        <div class="ency-header-spacer" aria-hidden="true"></div>
       </div>
-      <p style="text-align:center;color:#aaa;font-size:0.85rem;margin-bottom:20px;">
-        ✨ 点击卡片查看详细分析 · 十二种动物人格全收录 ✨
-      </p>
+      <p class="ency-intro">从社交能量、行动节奏与观察方式浏览十二种原型。点击卡片可查看优势、盲点和互动建议。</p>
 
       <div class="ency-tabs">
-        <button class="${tabClass('all')}" onclick="encyFilter='all';renderEncyclopedia();">🐾 全部</button>
-        <button class="${tabClass('social')}" onclick="encyFilter='social';renderEncyclopedia();">🎉 社交担当</button>
-        <button class="${tabClass('chill')}" onclick="encyFilter='chill';renderEncyclopedia();">🧘 佛系选手</button>
-        <button class="${tabClass('boss')}" onclick="encyFilter='boss';renderEncyclopedia();">👑 气场王者</button>
-        <button class="${tabClass('heal')}" onclick="encyFilter='heal';renderEncyclopedia();">🧠 脑力担当</button>
+        <button class="${tabClass('all')}" aria-pressed="${encyFilter === 'all'}" onclick="encyFilter='all';renderEncyclopedia();">全部</button>
+        <button class="${tabClass('social')}" aria-pressed="${encyFilter === 'social'}" onclick="encyFilter='social';renderEncyclopedia();">群居型</button>
+        <button class="${tabClass('chill')}" aria-pressed="${encyFilter === 'chill'}" onclick="encyFilter='chill';renderEncyclopedia();">独处型</button>
+        <button class="${tabClass('boss')}" aria-pressed="${encyFilter === 'boss'}" onclick="encyFilter='boss';renderEncyclopedia();">行动型</button>
+        <button class="${tabClass('heal')}" aria-pressed="${encyFilter === 'heal'}" onclick="encyFilter='heal';renderEncyclopedia();">观察型</button>
       </div>
 
       <div class="animal-grid">${cardsHTML}</div>
 
-      <div class="section-title">💚 官方天选CP大公开</div>
+      <div class="section-title">互动参考</div>
       <div class="cp-pairs">${cpHTML}</div>
 
       <div class="compat-checker" id="compatSection">
@@ -1032,62 +1105,33 @@ function renderEncyclopedia(){
   `;
 }
 
-function openAnimalDetail(animalId){
+function openAnimalDetail(animalId, trigger){
   const a = ANIMALS[animalId];
   if(!a) return;
 
   const best = ANIMALS[a.bestMatch];
   const worst = ANIMALS[a.worstMatch];
-
-  const overlay = document.createElement('div');
-  overlay.className = 'animal-detail-overlay';
-  overlay.id = 'animalDetailOverlay';
-  overlay.innerHTML = `
-    <div class="animal-detail-popup" onclick="event.stopPropagation()">
-      <button class="ad-close" onclick="closeAnimalDetail()">✕</button>
-      <span class="ad-emoji">${a.emoji}</span>
-      <div class="ad-name" style="color:${a.color}">${a.emoji} ${a.name}</div>
-      <div class="ad-tagline">"${a.tagline}"</div>
-      <div class="ad-desc">${a.desc}</div>
-      <div class="ad-traits">
-        <div class="ad-trait">
-          <div class="adt-label" style="color:var(--teal)">✨ 超能力</div>
-          <div class="adt-content">${a.superpower.replace(/\｜/g, '<br>')}</div>
+  if(!window.WTestShell?.openDrawer) return;
+  window.WTestShell.openDrawer({
+    title: `${a.name}人格档案`,
+    trigger,
+    content: `
+      <article class="animal-dossier" style="--animal-color:${a.color}">
+        <img class="animal-dossier__image" src="${a.image}" srcset="${a.image.replace('.webp', '-300.webp')} 300w, ${a.image} 600w" sizes="(max-width: 520px) 90vw, 480px" alt="动物人格插画：${a.name}" width="600" height="800" loading="lazy" decoding="async" onerror="this.hidden=true">
+        <p class="animal-dossier__tagline">${a.tagline}</p>
+        <div class="animal-dossier__desc">${a.desc}</div>
+        <div class="animal-dossier__traits">
+          <section><span>优势本能</span><p>${a.superpower.replace(/\｜/g, '<br>')}</p></section>
+          <section><span>容易踩坑</span><p>${a.bug.replace(/\｜/g, '<br>')}</p></section>
         </div>
-        <div class="ad-trait">
-          <div class="adt-label" style="color:var(--coral)">🐛 小Bug</div>
-          <div class="adt-content">${a.bug.replace(/\｜/g, '<br>')}</div>
+        <div class="animal-dossier__matches">
+          <section><span>互补参考 · ${best.name}</span><p>${a.bestWhy}</p></section>
+          <section><span>可能摩擦 · ${worst.name}</span><p>${a.worstWhy}</p></section>
         </div>
-      </div>
-      <div class="ad-matches">
-        <span class="ad-match" style="background:#E8FFF0;color:#20A060;" onclick="event.stopPropagation();openAnimalDetail('${a.bestMatch}')">
-          💚 天选搭档：${best.emoji} ${best.name}
-        </span>
-        <span class="ad-match" style="background:#FFF0F0;color:#D04040;" onclick="event.stopPropagation();openAnimalDetail('${a.worstMatch}')">
-          ⚡ 相爱相杀：${worst.emoji} ${worst.name}
-        </span>
-      </div>
-      <p style="font-size:0.75rem;color:#bbb;margin-top:12px;text-align:center;">${a.bestWhy}<br>${a.worstWhy}</p>
-      <p style="font-size:0.7rem;color:#ccc;text-align:center;margin-top:8px;">点击搭档头像可跳转查看～</p>
-    </div>
-  `;
-  overlay.addEventListener('click', closeAnimalDetail);
-  document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
+        <p class="animal-dossier__note">人格原型仅用于娱乐和自我观察，不代表现实关系结论。</p>
+      </article>`
+  });
 }
-
-function closeAnimalDetail(){
-  const overlay = document.getElementById('animalDetailOverlay');
-  if(overlay) overlay.remove();
-  document.body.style.overflow = '';
-}
-
-// 键盘ESC关闭弹窗
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape' && document.getElementById('animalDetailOverlay')){
-    closeAnimalDetail();
-  }
-});
 
 function checkCompat(idA, idB){
   // 支持从下拉框自动读取

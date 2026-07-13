@@ -40,11 +40,378 @@
   };
 
   const QUIZ_SELECTORS = '#test, #test-section, .test-section';
-  const RESULT_SELECTORS = '#results, #results-section, .results-section';
-  const HISTORY_SELECTORS = '#historyPage, #history-section, .history-page, .history-section';
-  const GALLERY_SELECTORS = '#encyclopediaPage, #encyclopedia-section, .encyclopedia-page, .encyclopedia-section';
+  const RESULT_SELECTORS = '#result, #results, #results-section, #screen-result, .results-section';
+  const HISTORY_SELECTORS = '#history, #historyPage, #history-section, #screen-history, .history-page, .history-section';
+  const GALLERY_SELECTORS = '#encyclopedia, #encyclopediaPage, #encyclopedia-section, .encyclopedia-page, .encyclopedia-section';
   const NAVIGATOR_SELECTORS = '.q-tabs-wrap, .question-tabs-wrap, .dot-grid, .question-nav-grid';
   let navigatorPreferenceOpen = false;
+  let activeView = 'home';
+  let restoringHistory = false;
+  let lastViewTrigger = null;
+
+  function isVisible(element) {
+    if (!element) return false;
+    const style = window.getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden' && !element.hidden;
+  }
+
+  function svgEmptyState() {
+    return '<svg viewBox="0 0 80 56" aria-hidden="true"><path d="M14 14h52v34H14z"/><path d="m14 15 26 20 26-20"/><path d="M25 8h30"/><path d="M30 3h20"/></svg>';
+  }
+
+  function ensureToastRegion() {
+    let region = document.querySelector('.wt-toast-region');
+    if (region) return region;
+    region = document.createElement('div');
+    region.className = 'wt-toast-region';
+    region.setAttribute('aria-live', 'polite');
+    region.setAttribute('aria-atomic', 'false');
+    document.body.appendChild(region);
+    return region;
+  }
+
+  function showToast(message, options = {}) {
+    const region = ensureToastRegion();
+    const toast = document.createElement('div');
+    toast.className = 'wt-toast';
+    toast.setAttribute('role', 'status');
+    const text = document.createElement('span');
+    text.textContent = message;
+    toast.appendChild(text);
+
+    if (options.actionLabel && typeof options.onAction === 'function') {
+      const action = document.createElement('button');
+      action.type = 'button';
+      action.className = 'wt-toast__action';
+      action.textContent = options.actionLabel;
+      action.addEventListener('click', () => {
+        options.onAction();
+        toast.remove();
+      }, { once: true });
+      toast.appendChild(action);
+    }
+
+    region.appendChild(toast);
+    const duration = Math.max(2000, Number(options.duration) || 5000);
+    window.setTimeout(() => toast.remove(), duration);
+    return toast;
+  }
+
+  function parseHistory(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return { raw: null, records: [] };
+      const parsed = JSON.parse(raw);
+      return { raw, records: Array.isArray(parsed) ? parsed : [] };
+    } catch (error) {
+      return { raw: null, records: [] };
+    }
+  }
+
+  function historyGroup(timestamp) {
+    const value = Number(timestamp) || Date.parse(timestamp) || 0;
+    const age = Date.now() - value;
+    if (value && age < 86400000) return 'today';
+    if (value && age < 604800000) return 'recent';
+    return 'earlier';
+  }
+
+  function renderHistoryList(options) {
+    const container = typeof options.container === 'string' ? document.querySelector(options.container) : options.container;
+    if (!container || !options.key || typeof options.toViewModel !== 'function') return null;
+    const parsed = parseHistory(options.key);
+    const models = [];
+    parsed.records.forEach((record, sourceIndex) => {
+      try {
+        const model = options.toViewModel(record, sourceIndex);
+        if (!model || !model.title) return;
+        models.push({ ...model, record, sourceIndex });
+      } catch (error) {
+        // 损坏的单条旧记录只跳过展示，不修改原始数据。
+      }
+    });
+
+    const legacyEmpty = options.empty
+      ? (typeof options.empty === 'string' ? document.querySelector(options.empty) : options.empty)
+      : null;
+    if (legacyEmpty) legacyEmpty.style.display = 'none';
+    container.innerHTML = '';
+    container.classList.add('wt-history-list-shell');
+
+    const stage = container.closest('.wt-test-stage--history, #history, #historyPage, #history-section, #screen-history, .history-page');
+    stage?.querySelectorAll('button[onclick*="clearHistory"], button[onclick*="clearAllHistory"], button[onclick*="clearMbtiHistory"]').forEach((button) => {
+      button.hidden = true;
+    });
+
+    if (!models.length) {
+      const empty = document.createElement('div');
+      empty.className = 'wt-empty-state';
+      empty.innerHTML = `<div class="wt-empty-state__visual">${svgEmptyState()}</div><h2>还没有测试记录</h2><p>完成一次测试后，结果会保存在当前浏览器中。</p>`;
+      if (typeof options.onStart === 'function') {
+        const start = document.createElement('button');
+        start.type = 'button';
+        start.className = 'wt-button wt-button--primary';
+        start.textContent = '开始第一次测试';
+        start.addEventListener('click', options.onStart);
+        empty.appendChild(start);
+      }
+      container.appendChild(empty);
+      options.onCountChange?.(0);
+      return { count: 0, skipped: parsed.records.length };
+    }
+
+    let manageMode = false;
+    const selected = new Set();
+    const controls = document.createElement('div');
+    controls.className = 'wt-history-controls';
+    const count = document.createElement('p');
+    count.textContent = `共 ${models.length} 条 · 结果只保存在当前浏览器`;
+    const actions = document.createElement('div');
+    const manage = document.createElement('button');
+    manage.type = 'button';
+    manage.className = 'wt-button wt-button--secondary';
+    manage.textContent = '选择记录';
+    const removeSelected = document.createElement('button');
+    removeSelected.type = 'button';
+    removeSelected.className = 'wt-button wt-button--danger';
+    removeSelected.textContent = '删除所选';
+    removeSelected.hidden = true;
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'wt-button wt-button--danger';
+    clear.textContent = '清空全部';
+    clear.hidden = true;
+    actions.append(manage, removeSelected, clear);
+    controls.append(count, actions);
+    container.appendChild(controls);
+
+    const groups = { today: [], recent: [], earlier: [] };
+    models.forEach((model) => groups[historyGroup(model.timestamp)].push(model));
+    const groupLabels = { today: '今天', recent: '最近 7 天', earlier: '更早' };
+
+    const restoreRaw = (raw) => {
+      try {
+        if (raw === null) localStorage.removeItem(options.key);
+        else localStorage.setItem(options.key, raw);
+      } catch (error) {
+        showToast({ message: '当前浏览器无法写入历史记录。' });
+        return;
+      }
+      options.onStorageChange?.();
+      renderHistoryList(options);
+    };
+
+    const removeIndices = async (indices, message) => {
+      if (!indices.length) return;
+      const confirmed = await confirmAction(message, {
+        title: indices.length > 1 ? `删除所选 ${indices.length} 条记录？` : '删除这条记录？',
+        confirmLabel: '删除'
+      });
+      if (!confirmed) return;
+      let before;
+      try {
+        before = localStorage.getItem(options.key);
+        const next = [...parsed.records];
+        [...indices].sort((a, b) => b - a).forEach((index) => next.splice(index, 1));
+        localStorage.setItem(options.key, JSON.stringify(next));
+      } catch (error) {
+        showToast({ message: '当前浏览器无法写入历史记录。' });
+        return;
+      }
+      options.onStorageChange?.();
+      renderHistoryList(options);
+      showToast(`已删除 ${indices.length} 条记录`, { actionLabel: '撤销', onAction: () => restoreRaw(before) });
+    };
+
+    Object.entries(groups).forEach(([group, items]) => {
+      if (!items.length) return;
+      const section = document.createElement('section');
+      section.className = 'wt-history-group';
+      const heading = document.createElement('h2');
+      heading.textContent = groupLabels[group];
+      section.appendChild(heading);
+
+      items.forEach((model) => {
+        const article = document.createElement('article');
+        article.className = 'wt-history-card';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'wt-history-card__check';
+        checkbox.setAttribute('aria-label', `选择${model.title}`);
+        checkbox.hidden = true;
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) selected.add(model.sourceIndex);
+          else selected.delete(model.sourceIndex);
+          removeSelected.disabled = selected.size === 0;
+          removeSelected.textContent = selected.size ? `删除所选（${selected.size}）` : '删除所选';
+        });
+
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'wt-history-card__main';
+        const visual = document.createElement('span');
+        visual.className = 'wt-history-card__visual';
+        if (Array.isArray(model.images) && model.images.length) {
+          visual.classList.add('wt-history-card__visual--images');
+          model.images.slice(0, 3).forEach((source, index) => {
+            const image = document.createElement('img');
+            image.src = source;
+            image.alt = index === 0 ? `${model.title}缩略图` : '';
+            image.loading = 'lazy';
+            image.decoding = 'async';
+            image.addEventListener('error', () => image.remove(), { once: true });
+            visual.appendChild(image);
+          });
+        } else {
+          visual.textContent = model.visual || '◇';
+        }
+        const copy = document.createElement('span');
+        copy.className = 'wt-history-card__copy';
+        const title = document.createElement('strong');
+        title.textContent = model.title;
+        const meta = document.createElement('span');
+        meta.textContent = model.meta || '';
+        const detail = document.createElement('small');
+        detail.textContent = model.detail || '';
+        copy.append(title, meta, detail);
+        const metric = document.createElement('span');
+        metric.className = 'wt-history-card__metric';
+        metric.textContent = model.metric || '';
+        open.append(visual, copy, metric);
+        open.addEventListener('click', () => {
+          sessionStorage.setItem(`wt-history-scroll:${options.key}`, String(window.scrollY));
+          options.onOpen?.(model.record, model.sourceIndex);
+        });
+
+        const menu = document.createElement('details');
+        menu.className = 'wt-history-card__menu';
+        const summary = document.createElement('summary');
+        summary.setAttribute('aria-label', '记录操作');
+        summary.textContent = '•••';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = '删除这条记录';
+        remove.addEventListener('click', () => removeIndices([model.sourceIndex], '删除后可在 5 秒内撤销。'));
+        menu.append(summary, remove);
+        article.append(checkbox, open, menu);
+        section.appendChild(article);
+      });
+      container.appendChild(section);
+    });
+
+    const syncManageMode = () => {
+      container.classList.toggle('is-managing', manageMode);
+      container.querySelectorAll('.wt-history-card__check').forEach((checkbox) => { checkbox.hidden = !manageMode; });
+      container.querySelectorAll('.wt-history-card__menu').forEach((menu) => { menu.hidden = manageMode; });
+      removeSelected.hidden = !manageMode;
+      clear.hidden = !manageMode;
+      manage.textContent = manageMode ? '完成选择' : '选择记录';
+      if (!manageMode) {
+        selected.clear();
+        container.querySelectorAll('.wt-history-card__check').forEach((checkbox) => { checkbox.checked = false; });
+      }
+      removeSelected.disabled = selected.size === 0;
+    };
+    manage.addEventListener('click', () => { manageMode = !manageMode; syncManageMode(); });
+    removeSelected.addEventListener('click', () => removeIndices([...selected], `删除所选 ${selected.size} 条记录后可在 5 秒内撤销。`));
+    clear.addEventListener('click', async () => {
+      const confirmed = await confirmAction(`将清空当前浏览器中的 ${parsed.records.length} 条记录。`, { title: '清空全部历史记录？', confirmLabel: '清空全部' });
+      if (!confirmed) return;
+      let before;
+      try {
+        before = localStorage.getItem(options.key);
+        localStorage.removeItem(options.key);
+      } catch (error) {
+        showToast({ message: '当前浏览器无法写入历史记录。' });
+        return;
+      }
+      options.onStorageChange?.();
+      renderHistoryList(options);
+      showToast('已清空全部记录', { actionLabel: '撤销', onAction: () => restoreRaw(before) });
+    });
+    syncManageMode();
+    options.onCountChange?.(models.length);
+    const savedScroll = Number(sessionStorage.getItem(`wt-history-scroll:${options.key}`));
+    if (Number.isFinite(savedScroll) && savedScroll > 0) {
+      window.requestAnimationFrame(() => window.scrollTo({ top: savedScroll, behavior: 'auto' }));
+    }
+    return { count: models.length, skipped: parsed.records.length - models.length };
+  }
+
+  function ensureConfirmDialog() {
+    let dialog = document.querySelector('#wt-confirm-dialog');
+    if (dialog) return dialog;
+    dialog = document.createElement('dialog');
+    dialog.id = 'wt-confirm-dialog';
+    dialog.className = 'wt-dialog';
+    dialog.innerHTML = `
+      <div class="wt-dialog__header"><h2 class="wt-dialog__title">请确认操作</h2></div>
+      <div class="wt-dialog__body"><p data-wt-confirm-message></p></div>
+      <div class="wt-dialog__footer">
+        <button type="button" class="wt-button wt-button--secondary" value="cancel">取消</button>
+        <button type="button" class="wt-button wt-button--danger" value="confirm">确认</button>
+      </div>`;
+    document.body.appendChild(dialog);
+    return dialog;
+  }
+
+  function confirmAction(message, options = {}) {
+    const dialog = ensureConfirmDialog();
+    dialog.querySelector('[data-wt-confirm-message]').textContent = message;
+    dialog.querySelector('.wt-dialog__title').textContent = options.title || '请确认操作';
+    const confirmButton = dialog.querySelector('[value="confirm"]');
+    const cancelButton = dialog.querySelector('[value="cancel"]');
+    confirmButton.textContent = options.confirmLabel || '确认';
+    cancelButton.textContent = options.cancelLabel || '取消';
+
+    return new Promise((resolve) => {
+      const finish = (value) => {
+        dialog.close();
+        confirmButton.removeEventListener('click', onConfirm);
+        cancelButton.removeEventListener('click', onCancel);
+        dialog.removeEventListener('cancel', onCancel);
+        resolve(value);
+      };
+      const onConfirm = () => finish(true);
+      const onCancel = (event) => {
+        event?.preventDefault?.();
+        finish(false);
+      };
+      confirmButton.addEventListener('click', onConfirm);
+      cancelButton.addEventListener('click', onCancel);
+      dialog.addEventListener('cancel', onCancel);
+      dialog.showModal();
+      cancelButton.focus();
+    });
+  }
+
+  function openDrawer(options = {}) {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'wt-detail-drawer';
+    const titleId = `wt-drawer-title-${Math.random().toString(36).slice(2, 8)}`;
+    dialog.setAttribute('aria-labelledby', titleId);
+    dialog.innerHTML = `
+      <div class="wt-detail-drawer__header">
+        <h2 class="wt-dialog__title" id="${titleId}"></h2>
+        <button type="button" class="wt-icon-button" aria-label="关闭详情">×</button>
+      </div>
+      <div class="wt-detail-drawer__body"></div>`;
+    dialog.querySelector('h2').textContent = options.title || '详情';
+    const body = dialog.querySelector('.wt-detail-drawer__body');
+    if (options.content instanceof Node) body.appendChild(options.content);
+    else body.innerHTML = options.content || '';
+    const trigger = options.trigger instanceof HTMLElement ? options.trigger : document.activeElement;
+    const close = () => dialog.close();
+    dialog.querySelector('button').addEventListener('click', close);
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      trigger?.focus?.();
+    }, { once: true });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    dialog.querySelector('button').focus();
+    return dialog;
+  }
 
   function pathTestId() {
     const parts = window.location.pathname.split('/').filter(Boolean);
@@ -57,12 +424,13 @@
     if (!nav || nav.dataset.wtEnhanced === 'true') return;
     nav.dataset.wtEnhanced = 'true';
     nav.innerHTML = `
-      <a class="wt-nav-back" href="../../index.html">${ICONS.back}<span>测试集合</span></a>
+      <a class="wt-nav-back" href="../../index.html">${ICONS.back}<span class="wt-nav-back__desktop">返回测试集合</span><span class="wt-nav-back__mobile">测试集合</span></a>
       <a class="wt-nav-brand" href="../../index.html" aria-label="W-Test 首页">
         <img src="../../favicon.png" alt="" width="28" height="28"><span>W-Test</span>
       </a>
-      <span class="wt-nav-context" aria-current="page">${config.name}</span>
+      <button type="button" class="wt-nav-context" aria-label="返回${config.name}主页">${config.name}</button>
       <button type="button" class="wt-nav-theme" data-theme-toggle>${ICONS.sun}${ICONS.moon}</button>`;
+    nav.querySelector('.wt-nav-context').addEventListener('click', () => navigateToView('home', { push: true }));
     window.WTestTheme?.bindControls();
   }
 
@@ -357,12 +725,171 @@
     });
   }
 
-  function openRequestedView() {
-    if (new URLSearchParams(window.location.search).get('view') !== 'history') return;
+  function viewLabel(id, view) {
+    if (view === 'home') return '测试介绍';
+    if (view === 'history') return '历史记录';
+    if (id === 'tarot') return '牌典';
+    return '图鉴';
+  }
+
+  function availableViews(id) {
+    const views = ['home'];
+    const hasAtlas = id === 'mbti' || typeof window.showEncyclopedia === 'function';
+    if (hasAtlas) views.push('atlas');
+    views.push('history');
+    return views;
+  }
+
+  function createViewNavigation(id) {
+    const nav = document.createElement('nav');
+    nav.className = 'wt-test-view-nav';
+    nav.setAttribute('aria-label', '测试内部导航');
+    nav.innerHTML = availableViews(id).map((view) => `
+      <button type="button" class="wt-test-view-nav__item" data-wt-view="${view}">${viewLabel(id, view)}</button>`).join('');
+    nav.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-wt-view]');
+      if (!button) return;
+      lastViewTrigger = button;
+      navigateToView(button.dataset.wtView, { push: true });
+    });
+    return nav;
+  }
+
+  function enhanceViewNavigation(id, config) {
+    const placements = [];
+    document.querySelectorAll('.wt-test-landing__copy').forEach((copy) => placements.push(copy));
+    document.querySelectorAll(`${RESULT_SELECTORS}, ${HISTORY_SELECTORS}, ${GALLERY_SELECTORS}`).forEach((stage) => {
+      const container = stage.querySelector(':scope > .results-container, :scope > .history-container, :scope > .encyclopedia-container') || stage;
+      placements.push(container);
+    });
+
+    placements.forEach((placement) => {
+      if (placement.querySelector(':scope > .wt-test-view-nav')) return;
+      const nav = createViewNavigation(id);
+      if (placement.classList.contains('wt-test-landing__copy')) {
+        const meta = placement.querySelector('.wt-test-meta');
+        meta?.after(nav);
+      } else {
+        placement.prepend(nav);
+      }
+    });
+    syncViewNavigation(config);
+  }
+
+  function currentViewFromDom(config) {
+    const visibleHistory = [...document.querySelectorAll(HISTORY_SELECTORS)].find(isVisible);
+    if (visibleHistory) return 'history';
+    const visibleGallery = [...document.querySelectorAll(GALLERY_SELECTORS)].find(isVisible);
+    if (visibleGallery) return 'atlas';
+    const visibleResult = [...document.querySelectorAll(RESULT_SELECTORS)].find(isVisible);
+    if (visibleResult) return 'result';
+    const visibleLanding = [...document.querySelectorAll(config.landing)].find(isVisible);
+    if (visibleLanding) return 'home';
+    const visibleQuiz = [...document.querySelectorAll(QUIZ_SELECTORS)].find(isVisible);
+    if (visibleQuiz) return 'quiz';
+    return activeView;
+  }
+
+  function syncViewNavigation(config) {
+    const nextView = currentViewFromDom(config);
+    if (nextView !== activeView) {
+      activeView = nextView;
+      const stage = nextView === 'history'
+        ? [...document.querySelectorAll(HISTORY_SELECTORS)].find(isVisible)
+        : nextView === 'atlas'
+          ? [...document.querySelectorAll(GALLERY_SELECTORS)].find(isVisible)
+          : nextView === 'result'
+            ? [...document.querySelectorAll(RESULT_SELECTORS)].find(isVisible)
+            : null;
+      if (stage) {
+        stage.classList.remove('is-wt-view-entering');
+        window.requestAnimationFrame(() => stage.classList.add('is-wt-view-entering'));
+      }
+    }
+    document.querySelectorAll('.wt-test-view-nav__item').forEach((button) => {
+      const selected = button.dataset.wtView === activeView;
+      if (selected) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
+  }
+
+  function setViewUrl(view, push) {
+    if (!['home', 'atlas', 'history', 'result'].includes(view)) return;
+    const url = new URL(window.location.href);
+    if (view === 'home') url.searchParams.delete('view');
+    else url.searchParams.set('view', view);
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (next === current) return;
+    window.history[push ? 'pushState' : 'replaceState']({ wtView: view }, '', next);
+  }
+
+  function showHome(id) {
+    if (id === 'mbti' && typeof window.showTab === 'function') {
+      window.showTab('test');
+      const intro = document.querySelector('#intro-section');
+      const content = document.querySelector('#test-content');
+      const result = document.querySelector('#result');
+      if (intro) intro.style.display = 'block';
+      if (content) content.style.display = 'none';
+      if (result) result.style.display = 'none';
+      return;
+    }
+    if (typeof window.backToLanding === 'function') window.backToLanding();
+    else if (typeof window.backToHome === 'function') window.backToHome();
+    else if (typeof window.backFromEncyclopedia === 'function') window.backFromEncyclopedia();
+    else if (id === 'tarot') document.querySelector('#btn-back-home')?.click();
+  }
+
+  function showAtlas(id) {
+    if (id === 'mbti' && typeof window.showTab === 'function') window.showTab('encyclopedia');
+    else if (typeof window.showEncyclopedia === 'function') window.showEncyclopedia();
+  }
+
+  function showHistoryView(id) {
+    if (typeof window.showHistory === 'function') window.showHistory();
+    else if (id === 'mbti' && typeof window.showTab === 'function') window.showTab('history');
+    else document.querySelector('#btn-domain-history, #btn-view-history')?.click();
+  }
+
+  function navigateToView(view, options = {}) {
+    const id = pathTestId();
+    restoringHistory = options.push === false;
+    if (view === 'home') showHome(id);
+    else if (view === 'atlas') showAtlas(id);
+    else if (view === 'history') showHistoryView(id);
+    if (options.push) setViewUrl(view, true);
     window.setTimeout(() => {
-      if (typeof window.showHistory === 'function') window.showHistory();
-      else if (typeof window.showTab === 'function') window.showTab('history');
-      else document.querySelector('#btn-domain-history, #btn-view-history')?.click();
+      restoringHistory = false;
+      const config = TESTS[id];
+      if (config) syncViewNavigation(config);
+    }, 0);
+  }
+
+  function trackLegacyViewActions(config) {
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('.wt-test-view-nav')) return;
+      const control = event.target.closest('button, a');
+      if (!control) return;
+      const signature = `${control.getAttribute('onclick') || ''} ${control.id || ''} ${control.textContent || ''}`;
+      let intended = '';
+      if (/showHistory|历史记录|查看历史/.test(signature)) intended = 'history';
+      else if (/showEncyclopedia|showTab\(['"]encyclopedia|图鉴|牌典/.test(signature)) intended = 'atlas';
+      else if (/backToLanding|backFromEncyclopedia|测试主页|返回首页/.test(signature)) intended = 'home';
+      if (!intended) return;
+      lastViewTrigger = control;
+      window.setTimeout(() => {
+        syncViewNavigation(config);
+        if (!restoringHistory && activeView === intended) setViewUrl(intended, true);
+      }, 0);
+    }, true);
+  }
+
+  function openRequestedView() {
+    const view = new URLSearchParams(window.location.search).get('view');
+    if (!['home', 'atlas', 'history'].includes(view)) return;
+    window.setTimeout(() => {
+      navigateToView(view, { push: false });
     }, 0);
   }
 
@@ -373,10 +900,12 @@
       enhanceLanding(id, config, document);
       markPageRegions();
       enhanceNavigators(document);
+      enhanceViewNavigation(id, config);
       enhancePseudoButtons(document);
       cleanStructuralEmoji(document);
       updateMbtiOverview();
       updateTarotFlow();
+      syncViewNavigation(config);
       window.setTimeout(syncChartTheme, 80);
     };
     const observer = new MutationObserver(() => {
@@ -398,18 +927,37 @@
     enhanceLanding(id, config, document);
     markPageRegions();
     enhanceNavigators(document);
+    enhanceViewNavigation(id, config);
     enhanceMbtiProgress();
     updateMbtiOverview();
     enhanceTarotFlow();
     enhancePseudoButtons(document);
     cleanStructuralEmoji(document);
     resetOnStartActions();
+    trackLegacyViewActions(config);
     watch(config, id);
     openRequestedView();
+    window.addEventListener('popstate', () => {
+      const view = new URLSearchParams(window.location.search).get('view') || 'home';
+      navigateToView(view, { push: false });
+    });
     window.addEventListener('wtest:themechange', () => window.setTimeout(syncChartTheme, 60));
     window.addEventListener('resize', syncChartTheme, { passive: true });
     window.setTimeout(syncChartTheme, 180);
   }
+
+  window.WTestShell = Object.assign(window.WTestShell || {}, {
+    confirmAction,
+    emptyStateVisual: svgEmptyState,
+    navigateToView,
+    openDrawer,
+    renderHistoryList,
+    showToast,
+    syncView: () => {
+      const config = TESTS[pathTestId()];
+      if (config) syncViewNavigation(config);
+    }
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

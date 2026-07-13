@@ -702,6 +702,26 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             backdrop-filter: blur(5px);
+            overflow: hidden;
+        }
+
+        .mbti-type-visual {
+            width: calc(100% + 50px);
+            aspect-ratio: 3 / 2;
+            margin: -25px -25px 20px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .mbti-type-visual picture,
+        .mbti-type-visual img {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mbti-type-visual img {
+            object-fit: cover;
         }
 
         .personality-card:hover {
@@ -1059,6 +1079,93 @@
             .wt-nav a { font-size: 0.82rem; }
             body { padding-top: 44px; }
         }
+        /* ===== 认知功能地图与结果坐标 ===== */
+        .mbti-cognitive-mark {
+            display: grid;
+            width: 112px;
+            min-width: 112px;
+            aspect-ratio: 1.2;
+            place-content: center;
+            gap: 7px;
+            border: 1px solid rgba(102,126,234,.24);
+            border-radius: 18px;
+            background: linear-gradient(145deg, rgba(102,126,234,.12), rgba(118,75,162,.06));
+            color: #2c3e50;
+            text-align: center;
+        }
+        .mbti-cognitive-mark strong { font-size: 23px; letter-spacing: .08em; }
+        .mbti-cognitive-mark span { color: #667eea; font-size: 12px; font-weight: 700; }
+        .mbti-cognitive-mark[data-group="diplomat"] { background: linear-gradient(145deg, rgba(39,174,96,.13), rgba(22,160,133,.06)); border-color: rgba(39,174,96,.25); }
+        .mbti-cognitive-mark[data-group="diplomat"] span { color: #1d8c5c; }
+        .mbti-cognitive-mark[data-group="sentinel"] { background: linear-gradient(145deg, rgba(52,152,219,.13), rgba(44,62,80,.06)); border-color: rgba(52,152,219,.25); }
+        .mbti-cognitive-mark[data-group="sentinel"] span { color: #2478ad; }
+        .mbti-cognitive-mark[data-group="explorer"] { background: linear-gradient(145deg, rgba(243,156,18,.15), rgba(231,76,60,.05)); border-color: rgba(243,156,18,.28); }
+        .mbti-cognitive-mark[data-group="explorer"] span { color: #b76d05; }
+
+        #ency-grid.personality-grid { display: block; }
+        .mbti-cognitive-map { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        .mbti-cognitive-cluster { padding: 20px; border: 1px solid #e2e4ef; border-radius: 20px; background: rgba(255,255,255,.86); }
+        .mbti-cognitive-cluster > header { margin-bottom: 16px; text-align: left; }
+        .mbti-cognitive-cluster > header span { color: #667eea; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+        .mbti-cognitive-cluster > header h3 { margin: 5px 0; color: #2c3e50; }
+        .mbti-cognitive-cluster > header p { color: #68717c; font-size: 13px; line-height: 1.6; }
+        .mbti-cognitive-cluster > div { display: grid; gap: 9px; }
+        .mbti-cognitive-cluster button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px; border: 1px solid #e5e6ee; border-radius: 15px; background: #fff; color: #2c3e50; font: inherit; text-align: left; cursor: pointer; }
+        .mbti-cognitive-cluster button .mbti-cognitive-mark { width: 76px; min-width: 76px; border-radius: 12px; }
+        .mbti-cognitive-cluster button .mbti-cognitive-mark strong { font-size: 17px; }
+        .mbti-cognitive-cluster button > span:last-child { display: grid; gap: 4px; }
+        .mbti-cognitive-cluster button small { color: #7b818a; }
+
+        .mbti-result-hero { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; max-width: 760px; margin: 0 auto; padding: 24px; border: 1px solid #e4e5ef; border-radius: 22px; background: rgba(255,255,255,.72); text-align: left; }
+        .mbti-result-hero > .mbti-cognitive-mark { width: 150px; min-width: 150px; }
+        .mbti-result-hero > div > span { color: #667eea; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+        .mbti-result-hero h2 { margin: 6px 0 9px; color: #2c3e50; }
+        .mbti-result-hero p { color: #56606b; line-height: 1.7; }
+        .mbti-result-analysis h4 { margin-bottom: 20px; color: #2c3e50; }
+        .mbti-coordinate-bands { display: grid; gap: 20px; }
+        .mbti-coordinate-band > div { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 8px; color: #4d5660; font-size: 13px; }
+        .mbti-coordinate-band > div strong:last-child { text-align: right; }
+        .mbti-coordinate-band > div span { color: #858b94; font-size: 11px; }
+        .mbti-coordinate-band i { position: relative; display: block; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #667eea, #ececf3 49%, #ececf3 51%, #764ba2); }
+        .mbti-coordinate-band i em { position: absolute; left: 50%; top: -4px; width: 1px; height: 18px; background: #fff; box-shadow: 0 0 0 1px #c9cad5; }
+        .mbti-coordinate-band i b { position: absolute; z-index: 2; top: 50%; width: 18px; height: 18px; border: 3px solid #fff; border-radius: 50%; background: #2c3e50; box-shadow: 0 2px 8px rgba(44,62,80,.25); transform: translate(-50%,-50%); }
+        .mbti-key-insights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+        .mbti-key-insights article { padding: 18px; border: 1px solid #e4e5ef; border-radius: 16px; background: #fff; text-align: left; }
+        .mbti-key-insights span { display: block; margin-bottom: 7px; color: #667eea; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+        .mbti-key-insights p { color: #5c6570; font-size: 13px; line-height: 1.65; }
+
+        .mbti-dossier { display: grid; gap: 16px; }
+        .mbti-dossier > .mbti-cognitive-mark { margin: 0 auto; }
+        .mbti-dossier > p,
+        .mbti-dossier > small { color: var(--wt-color-text-secondary); line-height: 1.7; }
+        .mbti-dossier section { padding: 16px; border: 1px solid var(--wt-color-border); border-radius: 14px; }
+        .mbti-dossier section h3 { margin-bottom: 9px; font-size: 15px; }
+        .mbti-dossier section p { color: var(--wt-color-text-secondary); line-height: 1.7; }
+        .mbti-dossier ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; list-style: none; }
+        .mbti-dossier li { display: grid; gap: 4px; padding: 12px 8px; border-radius: 12px; background: var(--wt-color-surface-muted); text-align: center; }
+        .mbti-dossier li span { color: var(--wt-color-text-muted); font-size: 10px; }
+        .mbti-interaction-reference { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: left; }
+        .mbti-interaction-reference section { padding: 14px; border: 1px solid #e4e5ef; border-radius: 12px; background: #fff; }
+        .mbti-interaction-reference section strong { color: #2c3e50; }
+        .mbti-interaction-reference section p { margin-top: 6px; color: #626a74; font-size: 12px; line-height: 1.55; }
+        .mbti-interaction-reference section small { color: #8a9098; }
+        .mbti-interaction-reference > small { grid-column: 1 / -1; color: #8a9098; text-align: center; }
+
+        @media (max-width: 760px) {
+            .mbti-cognitive-map,
+            .mbti-key-insights { grid-template-columns: 1fr; }
+            .mbti-result-hero { grid-template-columns: 1fr; text-align: center; }
+            .mbti-result-hero > .mbti-cognitive-mark { width: 132px; min-width: 132px; margin: 0 auto; }
+            .mbti-interaction-reference { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 460px) {
+            .mbti-cognitive-cluster { padding: 14px; }
+            .mbti-cognitive-cluster button .mbti-cognitive-mark { width: 66px; min-width: 66px; }
+            .mbti-coordinate-band > div { grid-template-columns: 1fr 1fr; }
+            .mbti-coordinate-band > div span { grid-column: 1 / -1; grid-row: 2; text-align: center; }
+            .mbti-dossier ol { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
     <script src="../../js/theme.js"></script>
     <link rel="stylesheet" href="../../css/tokens.css">
@@ -1081,7 +1188,7 @@
             <div class="tab-container">
                 <button class="tab-btn active" onclick="showTab('test')">开始测试</button>
                 <button class="tab-btn" onclick="showTab('types')">16种人格</button>
-                <button class="tab-btn" onclick="showTab('encyclopedia')">📖 MBTI图鉴</button>
+                <button class="tab-btn" onclick="showTab('encyclopedia')">认知功能地图</button>
                 <button class="tab-btn" onclick="showTab('history')">📋 历史记录</button>
                 <button class="tab-btn" onclick="showTab('about')">关于MBTI</button>
             </div>
@@ -1497,14 +1604,14 @@
             <!-- ===== MBTI图鉴页 ===== -->
             <div id="encyclopedia" class="tab-content">
                 <div class="intro-section">
-                    <h2>📖 MBTI 人格图鉴</h2>
-                    <p>点击卡片翻转查看16种人格的详细档案，了解每种人格的独特魅力</p>
+                    <h2>MBTI 认知功能地图</h2>
+                    <p>按四种认知偏好模式观察 16 种类型，点击节点查看功能顺序与行为参考</p>
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px;" id="ency-filter-bar"></div>
                 <div class="personality-grid" id="ency-grid"></div>
                 <div style="margin:32px 0 16px;">
-                    <h3 style="text-align:center;color:#2c3e50;">💞 配对兼容度速查</h3>
-                    <p style="text-align:center;font-size:0.85rem;color:#666;margin-bottom:12px;">基于荣格认知功能理论，选择两种人格查看匹配度</p>
+                    <h3 style="text-align:center;color:#2c3e50;">类型互动参考</h3>
+                    <p style="text-align:center;font-size:0.85rem;color:#666;margin-bottom:12px;">选择两种类型，对照认知入口、差异点与沟通提示</p>
                     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
                         <select id="mbti-match-a" onchange="updateMbtiMatch()" style="padding:8px 14px;border-radius:20px;border:2px solid #667eea;font-size:14px;font-family:inherit;"></select>
                         <span style="font-weight:700;color:#667eea;">×</span>
@@ -2202,6 +2309,86 @@
             };
         }
 
+        const MBTI_COGNITIVE_STACKS = {
+            INTJ:['Ni','Te','Fi','Se'], INTP:['Ti','Ne','Si','Fe'], ENTJ:['Te','Ni','Se','Fi'], ENTP:['Ne','Ti','Fe','Si'],
+            INFJ:['Ni','Fe','Ti','Se'], INFP:['Fi','Ne','Si','Te'], ENFJ:['Fe','Ni','Se','Ti'], ENFP:['Ne','Fi','Te','Si'],
+            ISTJ:['Si','Te','Fi','Ne'], ISFJ:['Si','Fe','Ti','Ne'], ESTJ:['Te','Si','Ne','Fi'], ESFJ:['Fe','Si','Ne','Ti'],
+            ISTP:['Ti','Se','Ni','Fe'], ISFP:['Fi','Se','Ni','Te'], ESTP:['Se','Ti','Fe','Ni'], ESFP:['Se','Fi','Te','Ni']
+        };
+        const MBTI_GROUP_META = {
+            analyst: { name:'概念分析', pattern:'N + T', summary:'先寻找模式与可能性，再用逻辑结构评估。' },
+            diplomat: { name:'价值联结', pattern:'N + F', summary:'先理解意义与可能性，再关注价值和人的体验。' },
+            sentinel: { name:'秩序维护', pattern:'S + J', summary:'依靠具体经验与明确结构，倾向稳定推进。' },
+            explorer: { name:'现场适应', pattern:'S + P', summary:'关注当下信息，倾向边行动边校准。' }
+        };
+
+        function getMbtiGroup(type) {
+            if (type[1] === 'N') return type[2] === 'T' ? 'analyst' : 'diplomat';
+            return type[3] === 'J' ? 'sentinel' : 'explorer';
+        }
+
+        function mbtiCognitiveMark(type) {
+            const stack = MBTI_COGNITIVE_STACKS[type] || [];
+            return `<div class="mbti-cognitive-mark" data-group="${getMbtiGroup(type)}" aria-label="${type} 认知功能顺序">
+                <strong>${type}</strong><span>${stack.slice(0, 2).join(' → ')}</span>
+            </div>`;
+        }
+
+        function mbtiThumbnail(type) {
+            const stack = MBTI_COGNITIVE_STACKS[type] || [];
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 120"><rect width="180" height="120" rx="20" fill="#f7f7fb"/><path d="M24 60h132" stroke="#d8d9e8" stroke-width="4"/><circle cx="48" cy="60" r="22" fill="#667eea"/><circle cx="132" cy="60" r="22" fill="#764ba2"/><text x="48" y="66" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="white">${stack[0] || ''}</text><text x="132" y="66" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="white">${stack[1] || ''}</text><text x="90" y="108" text-anchor="middle" font-family="Arial" font-size="18" font-weight="700" fill="#2c3e50">${type}</text></svg>`;
+            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+
+        function renderPreferenceBands(percentages) {
+            const dims = [
+                {a:'E',b:'I',left:'外向',right:'内向'},
+                {a:'S',b:'N',left:'实感',right:'直觉'},
+                {a:'T',b:'F',left:'思维',right:'情感'},
+                {a:'J',b:'P',left:'判断',right:'知觉'}
+            ];
+            return `<div class="mbti-coordinate-bands">${dims.map(dim => {
+                const leftValue = Number(percentages[dim.a]) || 50;
+                const rightValue = Number(percentages[dim.b]) || 50;
+                return `<div class="mbti-coordinate-band">
+                    <div><strong>${dim.a} · ${dim.left}</strong><span>${leftValue}% / ${rightValue}%</span><strong>${dim.right} · ${dim.b}</strong></div>
+                    <i><b style="left:${leftValue}%"></b><em></em></i>
+                </div>`;
+            }).join('')}</div>`;
+        }
+
+        function renderMbtiInsights(type, percentages) {
+            const energy = percentages.E >= percentages.I ? '更常通过外部互动整理想法，也需要主动安排安静复盘。' : '更常通过独处恢复精力，重要互动前后需要留出缓冲。';
+            const information = percentages.S >= percentages.N ? '倾向从事实与可验证细节进入问题，再逐步形成判断。' : '倾向先捕捉模式与可能性，再回到事实验证想法。';
+            const decision = `${percentages.T >= percentages.F ? '决策时更先检查逻辑一致性' : '决策时更先检查价值与人的感受'}；${percentages.J >= percentages.P ? '明确节点会带来行动感' : '保留调整空间会带来行动感'}。`;
+            return `<div class="mbti-key-insights">
+                <article><span>能量补给</span><p>${energy}</p></article>
+                <article><span>信息处理</span><p>${information}</p></article>
+                <article><span>决策与行动</span><p>${decision}</p></article>
+            </div>`;
+        }
+
+        function openMbtiDossier(type, trigger) {
+            const data = MBTI_ENCYCLOPEDIA[type];
+            const desc = getTypeDescription(type);
+            const group = MBTI_GROUP_META[getMbtiGroup(type)];
+            const stack = MBTI_COGNITIVE_STACKS[type];
+            if (!data || !window.WTestShell?.openDrawer) return;
+            window.WTestShell.openDrawer({
+                title: `${type} · ${desc.name}`,
+                trigger,
+                content: `<article class="mbti-dossier">
+                    ${mbtiCognitiveMark(type)}
+                    <p>${group.name}模式：${group.summary}</p>
+                    <section><h3>认知功能顺序</h3><ol>${stack.map((item, index) => `<li><span>0${index + 1}</span><strong>${item}</strong></li>`).join('')}</ol></section>
+                    <section><h3>常见优势</h3><p>${data.strengths.replaceAll(' | ', '、')}</p></section>
+                    <section><h3>容易忽略</h3><p>${data.weaknesses.replaceAll(' | ', '、')}</p></section>
+                    <section><h3>情境参考</h3><p>${desc.desc}</p></section>
+                    <small>MBTI 描述偏好，不代表能力高低，也不能替代真实情境中的观察。</small>
+                </article>`
+            });
+        }
+
         function showResult() {
             const result = calculateType();
             const type = result.type;
@@ -2226,84 +2413,19 @@
             ).join('');
             
             resultDiv.innerHTML = `
-                <div class="personality-avatar">
-                    <div class="avatar-circle type-${type}" style="background: ${description.color}">
-                        <div class="cartoon-avatar avatar-${type}">
-                            <div class="avatar-head">
-                                <div class="avatar-eyes">
-                                    <div class="eye"></div>
-                                    <div class="eye"></div>
-                                </div>
-                                <div class="avatar-mouth"></div>
-                            </div>
-                            <div class="avatar-feature"></div>
-                        </div>
-                    </div>
+                <div class="mbti-result-hero">
+                    ${mbtiCognitiveMark(type)}
+                    <div><span>${MBTI_GROUP_META[getMbtiGroup(type)].name}</span><h2>${type} · ${description.name}</h2><p>${description.desc}</p></div>
                 </div>
-                
-                <h2 style="color: #2c3e50;">你的人格类型是：${type}</h2>
-                <h3 style="background: ${description.color}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 15px 0; font-size: 2em;">${description.name}</h3>
-                <p style="color: #555; max-width: 600px; margin: 0 auto;">${description.desc}</p>
-                
-                <div class="trait-tags">
-                    ${traitsHTML}
+                <div class="trait-tags">${traitsHTML}</div>
+                <div class="result-card mbti-result-analysis">
+                    <h4>四维偏好坐标</h4>
+                    ${renderPreferenceBands(percentages)}
                 </div>
-                
-                <div class="result-card">
-                    <h4 style="color: #2c3e50; margin-bottom: 20px;">你的倾向分析：</h4>
-                    
-                    <!-- E / I -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-weight: ${percentages.E > percentages.I ? 'bold' : 'normal'}">外向 (E) ${percentages.E}%</span>
-                            <span style="font-weight: ${percentages.I > percentages.E ? 'bold' : 'normal'}">${percentages.I}% 内向 (I)</span>
-                        </div>
-                        <div style="background: #e0e0e0; height: 25px; border-radius: 15px; overflow: hidden; position: relative;">
-                            <div style="background: ${description.color}; height: 100%; width: ${percentages.E}%; position: absolute; left: 0; top: 0; transition: width 1s ease;"></div>
-                            <div style="background: linear-gradient(135deg, #95a5a6, #7f8c8d); height: 100%; width: ${percentages.I}%; position: absolute; right: 0; top: 0; transition: width 1s ease;"></div>
-                        </div>
-                    </div>
-
-                    <!-- S / N -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-weight: ${percentages.S > percentages.N ? 'bold' : 'normal'}">感觉 (S) ${percentages.S}%</span>
-                            <span style="font-weight: ${percentages.N > percentages.S ? 'bold' : 'normal'}">${percentages.N}% 直觉 (N)</span>
-                        </div>
-                        <div style="background: #e0e0e0; height: 25px; border-radius: 15px; overflow: hidden; position: relative;">
-                            <div style="background: ${description.color}; height: 100%; width: ${percentages.S}%; position: absolute; left: 0; top: 0; transition: width 1s ease;"></div>
-                            <div style="background: linear-gradient(135deg, #95a5a6, #7f8c8d); height: 100%; width: ${percentages.N}%; position: absolute; right: 0; top: 0; transition: width 1s ease;"></div>
-                        </div>
-                    </div>
-
-                    <!-- T / F -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-weight: ${percentages.T > percentages.F ? 'bold' : 'normal'}">思维 (T) ${percentages.T}%</span>
-                            <span style="font-weight: ${percentages.F > percentages.T ? 'bold' : 'normal'}">${percentages.F}% 情感 (F)</span>
-                        </div>
-                        <div style="background: #e0e0e0; height: 25px; border-radius: 15px; overflow: hidden; position: relative;">
-                            <div style="background: ${description.color}; height: 100%; width: ${percentages.T}%; position: absolute; left: 0; top: 0; transition: width 1s ease;"></div>
-                            <div style="background: linear-gradient(135deg, #95a5a6, #7f8c8d); height: 100%; width: ${percentages.F}%; position: absolute; right: 0; top: 0; transition: width 1s ease;"></div>
-                        </div>
-                    </div>
-
-                    <!-- J / P -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-weight: ${percentages.J > percentages.P ? 'bold' : 'normal'}">判断 (J) ${percentages.J}%</span>
-                            <span style="font-weight: ${percentages.P > percentages.J ? 'bold' : 'normal'}">${percentages.P}% 知觉 (P)</span>
-                        </div>
-                        <div style="background: #e0e0e0; height: 25px; border-radius: 15px; overflow: hidden; position: relative;">
-                            <div style="background: ${description.color}; height: 100%; width: ${percentages.J}%; position: absolute; left: 0; top: 0; transition: width 1s ease;"></div>
-                            <div style="background: linear-gradient(135deg, #95a5a6, #7f8c8d); height: 100%; width: ${percentages.P}%; position: absolute; right: 0; top: 0; transition: width 1s ease;"></div>
-                        </div>
-                    </div>
-                </div>
-                
+                ${renderMbtiInsights(type, percentages)}
                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
                     <button class="tab-btn" style="background: ${description.color}; border: none;" onclick="resetQuiz()">重新测试</button>
-                    <button class="tab-btn" style="background: white; color: #667eea; border: 2px solid #667eea;" onclick="showTab('types')">查看所有类型</button>
+                    <button class="tab-btn" style="background: white; color: #667eea; border: 2px solid #667eea;" onclick="showTab('encyclopedia')">查看认知地图</button>
                     <button class="tab-btn" style="background: white; color: #667eea; border: 2px solid #667eea;" onclick="shareResult('${type}')">分享结果</button>
                 </div>
             `;
@@ -2375,6 +2497,18 @@
             // 为人格卡片添加渐进动画
             const cards = document.querySelectorAll('.personality-card');
             cards.forEach((card, index) => {
+                const typeCode = card.querySelector('.type-code').textContent.trim();
+                const typeName = card.querySelector('h3').textContent.trim();
+                const visual = card.firstElementChild;
+                const assetName = typeCode.toLowerCase();
+
+                visual.removeAttribute('style');
+                visual.className = 'mbti-type-visual';
+                visual.innerHTML = `<picture>
+                    <source srcset="../../assets/tests/mbti/types/${assetName}-360.webp 360w, ../../assets/tests/mbti/types/${assetName}.webp 720w" sizes="(max-width: 640px) 100vw, 360px" type="image/webp">
+                    <img src="../../assets/tests/mbti/types/${assetName}.webp" alt="${typeCode} ${typeName}人格场景插画" width="720" height="480" loading="lazy" decoding="async">
+                </picture>`;
+
                 card.style.animationDelay = `${index * 0.05}s`;
                 card.style.animation = 'fadeInUp 0.6s ease forwards';
                 card.style.opacity = '0';
@@ -2414,10 +2548,49 @@
             } catch(e) {}
         }
 
+        function loadMbtiHistory() {
+            try {
+                const data = localStorage.getItem(MBTI_HISTORY_KEY);
+                const parsed = data ? JSON.parse(data) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
         function renderMbtiHistory() {
             const listEl = document.getElementById('mbti-history-list');
             const emptyEl = document.getElementById('mbti-history-empty');
-            const history = JSON.parse(localStorage.getItem(MBTI_HISTORY_KEY) || '[]');
+            if (window.WTestShell?.renderHistoryList) {
+                window.WTestShell.renderHistoryList({
+                    container: listEl,
+                    empty: emptyEl,
+                    key: MBTI_HISTORY_KEY,
+                    toViewModel: function(record) {
+                        if (!record || !record.type || !record.percentages) return null;
+                        var dims = [['E','I'],['S','N'],['T','F'],['J','P']];
+                        var strongest = dims.map(function(pair) {
+                            var a = Number(record.percentages[pair[0]]) || 50;
+                            var b = Number(record.percentages[pair[1]]) || 50;
+                            return { label: a >= b ? pair[0] : pair[1], value: Math.max(a, b) };
+                        }).sort(function(a,b) { return b.value - a.value; }).slice(0, 2);
+                        return {
+                            timestamp: record.id || record.date,
+                            visual: record.type,
+                            images: [mbtiThumbnail(record.type)],
+                            title: record.type + ' · ' + (record.typeName || getTypeDescription(record.type).name),
+                            meta: record.date || '较早记录',
+                            detail: strongest.map(function(item) { return item.label + ' ' + item.value + '%'; }).join(' · '),
+                            metric: strongest[0] ? strongest[0].value + '%' : ''
+                        };
+                    },
+                    onOpen: function(record, sourceIndex) { viewMbtiHistory(sourceIndex); },
+                    onStart: function() { showTab('test'); resetQuiz(); }
+                });
+                return;
+            }
+
+            const history = loadMbtiHistory();
 
             if (history.length === 0) {
                 listEl.innerHTML = '';
@@ -2446,7 +2619,7 @@
         }
 
         function viewMbtiHistory(index) {
-            const history = JSON.parse(localStorage.getItem(MBTI_HISTORY_KEY) || '[]');
+            const history = loadMbtiHistory();
             if (!history[index]) return;
             const r = history[index];
             const desc = getTypeDescription(r.type);
@@ -2464,40 +2637,12 @@
 
             const traitsHTML = desc.traits.map(function(t) { return '<span class="trait-tag">' + t + '</span>'; }).join('');
             const pct = r.percentages;
-            var dims = [
-                {a:'E',b:'I',label:'外向(E) vs 内向(I)'},
-                {a:'S',b:'N',label:'感觉(S) vs 直觉(N)'},
-                {a:'T',b:'F',label:'思维(T) vs 情感(F)'},
-                {a:'J',b:'P',label:'判断(J) vs 知觉(P)'}
-            ];
-            var barsHTML = '';
-            dims.forEach(function(d) {
-                var va = pct[d.a] || 50;
-                var vb = pct[d.b] || 50;
-                barsHTML += '<div style="margin-bottom:16px;">' +
-                    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.9rem;">' +
-                        '<span style="font-weight:' + (va>vb?'bold':'normal') + '">' + d.a + ' ' + va + '%</span>' +
-                        '<span style="font-weight:' + (vb>va?'bold':'normal') + '">' + vb + '% ' + d.b + '</span>' +
-                    '</div>' +
-                    '<div style="background:#e0e0e0;height:20px;border-radius:10px;overflow:hidden;">' +
-                        '<div style="background:' + desc.color + ';height:100%;width:' + va + '%;float:left;"></div>' +
-                    '</div></div>';
-            });
+            var barsHTML = renderPreferenceBands(pct);
 
             resultDiv.innerHTML =
-                '<div class="personality-avatar">' +
-                    '<div class="avatar-circle type-' + r.type + '" style="background:' + desc.color + '">' +
-                        '<div class="cartoon-avatar avatar-' + r.type + '">' +
-                            '<div class="avatar-head"><div class="avatar-eyes"><div class="eye"></div><div class="eye"></div></div><div class="avatar-mouth"></div></div>' +
-                            '<div class="avatar-feature"></div>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-                '<h2 style="color:#2c3e50;">你的人格类型是：' + r.type + '</h2>' +
-                '<h3 style="background:' + desc.color + ';-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:15px 0;font-size:2em;">' + desc.name + '</h3>' +
-                '<p style="color:#555;max-width:600px;margin:0 auto;">' + desc.desc + '</p>' +
+                '<div class="mbti-result-hero">' + mbtiCognitiveMark(r.type) + '<div><span>' + MBTI_GROUP_META[getMbtiGroup(r.type)].name + '</span><h2>' + r.type + ' · ' + desc.name + '</h2><p>' + desc.desc + '</p></div></div>' +
                 '<div class="trait-tags">' + traitsHTML + '</div>' +
-                '<div class="result-card"><h4 style="color:#2c3e50;margin-bottom:20px;">倾向分析：</h4>' + barsHTML + '</div>' +
+                '<div class="result-card mbti-result-analysis"><h4>四维偏好坐标</h4>' + barsHTML + '</div>' + renderMbtiInsights(r.type, pct) +
                 '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px;">' +
                     '<button class="tab-btn" onclick="showTab(\'history\');renderMbtiHistory();" style="background:#f0f0f0;color:#333;">← 返回历史</button>' +
                     '<button class="tab-btn" style="background:' + desc.color + '" onclick="resetQuiz()">重新测试</button>' +
@@ -2508,15 +2653,15 @@
 
         function deleteMbtiHistory(index) {
             if (!confirm('确定删除这条记录吗？')) return;
-            var history = JSON.parse(localStorage.getItem(MBTI_HISTORY_KEY) || '[]');
+            var history = loadMbtiHistory();
             history.splice(index, 1);
-            localStorage.setItem(MBTI_HISTORY_KEY, JSON.stringify(history));
+            try { localStorage.setItem(MBTI_HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
             renderMbtiHistory();
         }
 
         function clearMbtiHistory() {
             if (!confirm('确定要清空所有历史记录吗？此操作不可恢复。')) return;
-            localStorage.removeItem(MBTI_HISTORY_KEY);
+            try { localStorage.removeItem(MBTI_HISTORY_KEY); } catch (e) {}
             renderMbtiHistory();
         }
 
@@ -2558,49 +2703,30 @@
 
         function renderMbtiEncyclopedia() {
             var grid = document.getElementById('ency-grid');
-            var types = Object.keys(MBTI_ENCYCLOPEDIA);
-            var filtered = types;
-            if (encyFilterMbti !== 'all') {
-                filtered = types.filter(function(t) { return mbtiGroups[encyFilterMbti] && mbtiGroups[encyFilterMbti].indexOf(t) >= 0; });
-            }
-
             var filters = [
                 {key:'all',label:'全部'},
-                {key:'analyst',label:'🧠 分析家'},
-                {key:'diplomat',label:'💚 外交家'},
-                {key:'sentinel',label:'🛡️ 守护者'},
-                {key:'explorer',label:'🎨 探索者'}
+                {key:'analyst',label:'概念分析'},
+                {key:'diplomat',label:'价值联结'},
+                {key:'sentinel',label:'秩序维护'},
+                {key:'explorer',label:'现场适应'}
             ];
             document.getElementById('ency-filter-bar').innerHTML = filters.map(function(g) {
                 return '<button class="tab-btn' + (encyFilterMbti === g.key ? ' active' : '') + '" style="font-size:0.85rem;padding:8px 16px;" onclick="encyFilterMbti=\'' + g.key + '\';renderMbtiEncyclopedia();">' + g.label + '</button>';
             }).join('');
 
-            grid.innerHTML = filtered.map(function(t) {
-                var e = MBTI_ENCYCLOPEDIA[t];
-                var desc = getTypeDescription(t);
-                return '<div class="personality-card mbti-flip-card" style="position:relative;overflow:hidden;cursor:pointer;min-height:280px;" onclick="this.classList.toggle(\'flipped-mbti\')">' +
-                    '<div class="mbti-card-front" style="text-align:center;padding:20px;">' +
-                        '<div class="avatar-circle" style="width:70px;height:70px;margin:0 auto 12px;font-size:1.5em;background:' + desc.color + ';">' +
-                            '<div class="cartoon-avatar avatar-' + t + '" style="transform:scale(0.6);">' +
-                                '<div class="avatar-head"><div class="avatar-eyes"><div class="eye"></div><div class="eye"></div></div><div class="avatar-mouth"></div></div>' +
-                                '<div class="avatar-feature"></div>' +
-                            '</div>' +
-                        '</div>' +
-                        '<h3>' + desc.name + '</h3>' +
-                        '<div class="type-code" style="background:' + desc.color + ';-webkit-background-clip:text;-webkit-text-fill-color:transparent;">' + t + '</div>' +
-                        '<p style="font-size:0.85rem;color:#666;margin-top:6px;">' + e.vibe + '</p>' +
-                        '<p style="font-size:0.7rem;color:#999;margin-top:8px;">👆 点击查看详情</p>' +
-                    '</div>' +
-                    '<div class="mbti-card-back" style="display:none;padding:16px;text-align:left;">' +
-                        '<h4 style="color:#2c3e50;margin-bottom:8px;border-bottom:2px solid #eee;padding-bottom:8px;">' + t + ' · ' + desc.name + '</h4>' +
-                        '<p style="font-size:0.85rem;color:#555;line-height:1.6;margin-bottom:8px;">' + e.detail + '</p>' +
-                        '<div style="font-size:0.8rem;margin-bottom:4px;"><strong>✨ 优势：</strong>' + e.strengths + '</div>' +
-                        '<div style="font-size:0.8rem;margin-bottom:4px;"><strong>⚠ 短板：</strong>' + e.weaknesses + '</div>' +
-                        '<div style="font-size:0.8rem;margin-bottom:4px;"><strong>💼 适合职业：</strong>' + e.career + '</div>' +
-                        '<div style="font-size:0.75rem;color:#999;font-style:italic;margin-top:8px;border-top:1px solid #eee;padding-top:8px;">😂 ' + e.fun + '</div>' +
-                    '</div>' +
-                '</div>';
-            }).join('');
+            var groupKeys = encyFilterMbti === 'all' ? Object.keys(mbtiGroups) : [encyFilterMbti];
+            grid.innerHTML = '<div class="mbti-cognitive-map">' + groupKeys.map(function(groupKey) {
+                var meta = MBTI_GROUP_META[groupKey];
+                return '<section class="mbti-cognitive-cluster" data-group="' + groupKey + '">' +
+                    '<header><span>' + meta.pattern + '</span><h3>' + meta.name + '</h3><p>' + meta.summary + '</p></header>' +
+                    '<div>' + mbtiGroups[groupKey].map(function(type) {
+                        var desc = getTypeDescription(type);
+                        return '<button type="button" onclick="openMbtiDossier(\'' + type + '\', this)">' +
+                            mbtiCognitiveMark(type) + '<span><strong>' + desc.name + '</strong><small>查看功能顺序与情境参考</small></span>' +
+                        '</button>';
+                    }).join('') + '</div>' +
+                '</section>';
+            }).join('') + '</div>';
         }
 
         // 注入翻转样式
@@ -2623,37 +2749,19 @@
             var a = document.getElementById('mbti-match-a') ? document.getElementById('mbti-match-a').value : '';
             var b = document.getElementById('mbti-match-b') ? document.getElementById('mbti-match-b').value : '';
             var el = document.getElementById('mbti-match-result');
-            if (!a || !b) { el.innerHTML = '<span style="color:#999;">请选择两种人格</span>'; return; }
-            if (a === b) { el.innerHTML = '<span style="color:#999;">😅 同一个人跟自己最合拍？选两个不同的试试吧～</span>'; return; }
-
-            var functions = {
-                'INTJ':['Ni','Te','Fi','Se'], 'INTP':['Ti','Ne','Si','Fe'],
-                'ENTJ':['Te','Ni','Se','Fi'], 'ENTP':['Ne','Ti','Fe','Si'],
-                'INFJ':['Ni','Fe','Ti','Se'], 'INFP':['Fi','Ne','Si','Te'],
-                'ENFJ':['Fe','Ni','Se','Ti'], 'ENFP':['Ne','Fi','Te','Si'],
-                'ISTJ':['Si','Te','Fi','Ne'], 'ISFJ':['Si','Fe','Ti','Ne'],
-                'ESTJ':['Te','Si','Ne','Fi'], 'ESFJ':['Fe','Si','Ne','Ti'],
-                'ISTP':['Ti','Se','Ni','Fe'], 'ISFP':['Fi','Se','Ni','Te'],
-                'ESTP':['Se','Ti','Fe','Ni'], 'ESFP':['Se','Fi','Te','Ni']
-            };
-
-            var fa = functions[a], fb = functions[b];
-            var score = 0;
-            for (var i = 0; i < 4; i++) {
-                for (var j = 0; j < 4; j++) {
-                    if (fa[i] === fb[j]) score += (4 - Math.abs(i - j));
-                }
-            }
-            var pct = Math.min(98, Math.round(40 + score * 4));
-            var emoji, label, color;
-            if (pct >= 85) { emoji = '💎'; label = '灵魂共鸣'; color = '#27ae60'; }
-            else if (pct >= 70) { emoji = '🌟'; label = '很合拍'; color = '#f39c12'; }
-            else if (pct >= 55) { emoji = '👍'; label = '还不错'; color = '#e67e22'; }
-            else { emoji = '🤝'; label = '需要磨合'; color = '#e74c3c'; }
-
-            el.innerHTML = '<div style="font-size:2rem;font-weight:900;color:' + color + ';">' + pct + '<span style="font-size:1rem;">分</span></div>' +
-                '<div>' + emoji + ' ' + label + '</div>' +
-                '<p style="font-size:0.82rem;color:#999;margin-top:4px;">基于荣格认知功能理论计算 · 仅供参考娱乐</p>';
+            if (!a || !b) { el.innerHTML = '<span style="color:#999;">请选择两种类型</span>'; return; }
+            var fa = MBTI_COGNITIVE_STACKS[a], fb = MBTI_COGNITIVE_STACKS[b];
+            var shared = fa.filter(function(item) { return fb.indexOf(item) >= 0; });
+            var sameGroup = getMbtiGroup(a) === getMbtiGroup(b);
+            var entry = sameGroup ? '两者使用相近的偏好模式，理解问题时较容易找到共同入口。' : '两者从不同偏好模式进入问题，可能带来更广的观察角度。';
+            var difference = a === b ? '功能顺序相同，但现实中的经验、能力和价值观仍可能不同。' : '前两位功能分别为 ' + fa.slice(0,2).join(' → ') + ' 与 ' + fb.slice(0,2).join(' → ') + '，关注重点和表达节奏可能不同。';
+            var advice = a[0] === b[0] ? '共同约定何时讨论、何时暂停，避免把相似的沟通习惯当作默认共识。' : '外向偏好者可给对方整理时间，内向偏好者则可提前说出需要多久再回应。';
+            el.innerHTML = '<div class="mbti-interaction-reference">' +
+                '<section><strong>共同入口</strong><p>' + entry + '</p><small>共同功能：' + shared.join('、') + '</small></section>' +
+                '<section><strong>可能差异</strong><p>' + difference + '</p></section>' +
+                '<section><strong>沟通提示</strong><p>' + advice + '</p></section>' +
+                '<small>此处描述认知偏好，不评判关系质量或结果。</small>' +
+            '</div>';
         }
 
         // 重写 showTab 以支持图鉴和历史
