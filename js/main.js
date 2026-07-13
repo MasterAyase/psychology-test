@@ -124,7 +124,7 @@
     const cardSpans = getCardSpans(visibleTests.length);
     elements.testGrid.innerHTML = visibleTests.map((test, index) => {
       const axis = getTestAxis(test);
-      const catalogCode = `WT / ${test.id.toUpperCase()}`;
+      const catalogCode = `WS / ${test.id.toUpperCase()}`;
       return `
       <a class="test-card"
          href="${escapeHtml(test.path)}"

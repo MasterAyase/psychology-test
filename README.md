@@ -5,7 +5,7 @@
 **探索你的内心世界 · 一站式心理测试集合平台**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://heyemily-ovo.github.io/W-Test/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://heyemily-ovo.github.io/wingsight/)
 
 </div>
 
@@ -31,16 +31,16 @@
 
 ### 在线访问
 
-直接访问 GitHub Pages：**[https://heyemily-ovo.github.io/W-Test/](https://heyemily-ovo.github.io/W-Test/)**
+直接访问 GitHub Pages：**[https://heyemily-ovo.github.io/wingsight/](https://heyemily-ovo.github.io/wingsight/)**
 
 ### 本地运行
 
 ```bash
 # 克隆仓库
-git clone https://github.com/HeyEmily-ovo/W-Test.git
+git clone https://github.com/HeyEmily-ovo/wingsight.git
 
 # 进入目录
-cd W-Test
+cd wingsight
 
 # 使用任意静态服务器启动，例如：
 python -m http.server 8080
@@ -112,7 +112,7 @@ npx serve .
 ## 🏗️ 项目结构
 
 ```
-W-Test/
+wingsight/
 ├── index.html                  # 主入口页面
 ├── favicon.svg                 # 网站图标（翅膀大脑图案）
 ├── assets/
