@@ -3,194 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Psychology Test · 心理测试｜找到此刻最适合你的心理测试</title>
-  <meta name="description" content="Psychology Test（心理测试）汇集人格、关系、成长与趣味探索测试。无需登录，结果保存在本地设备中，帮助你从一个问题开始认识自己。">
-  <meta name="keywords" content="心理测试,MBTI,人格测试,恋爱测试,心理成熟度,动物人格,Psychology Test">
-  <meta property="og:title" content="Psychology Test · 心理测试｜找到此刻最适合你的心理测试">
-  <meta property="og:description" content="从人格、关系到成长状态，选择一个此刻最想了解的问题。">
-  <meta property="og:type" content="website">
-  <script src="js/theme.js"></script>
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Psychology Test · 心理测试</title>
+  <meta name="description" content="免费、无需登录的在线心理测评：大五人格、16 型人格倾向、恋爱依恋风格与塔罗指引。结果只保存在你的浏览器里。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23c8553d'/%3E%3Ctext x='32' y='43' font-size='30' text-anchor='middle' fill='%23fff' font-family='serif'%3E%CF%88%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
 </head>
-<body aria-busy="true">
-  <div class="site-loader" id="siteLoader" role="status" aria-live="polite" aria-label="正在载入 Psychology Test 心理测试">
-    <div class="site-loader__constellation" aria-hidden="true">
-      <span class="site-loader__orbit site-loader__orbit--outer"></span>
-      <span class="site-loader__orbit site-loader__orbit--inner"></span>
-      <span class="site-loader__node site-loader__node--one"></span>
-      <span class="site-loader__node site-loader__node--two"></span>
-      <span class="site-loader__node site-loader__node--three"></span>
-      <span class="site-loader__core"><img src="favicon.png" alt="" width="52" height="52"></span>
-    </div>
-    <div class="site-loader__copy">
-      <p>正在校准你的心智图谱</p>
-      <span>PSYCHOLOGY TEST · 心理测试</span>
-    </div>
-  </div>
-  <a class="skip-link" href="#mainContent">跳到主要内容</a>
-
-  <header class="site-header" id="siteHeader">
-    <div class="site-header__inner">
-      <a class="brand" href="./index.html" aria-label="Psychology Test 心理测试首页">
-        <img src="favicon.png" alt="" width="34" height="34">
-        <span class="brand__name">Psychology Test</span>
-        <span class="brand__note">心理测试</span>
-      </a>
-
-      <nav class="site-nav" aria-label="主导航">
-        <a href="#tests">探索测试</a>
-        <a href="#records">我的记录</a>
-        <a href="#about">关于</a>
-        <a class="site-nav__github" href="https://github.com/MasterAyase/psychology-test" target="_blank" rel="noopener">GitHub</a>
-      </nav>
-
-      <button class="wt-icon-button" id="themeToggle" type="button" data-theme-toggle aria-label="切换主题">
-        <svg class="wt-theme-icon wt-theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-        <svg class="wt-theme-icon wt-theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-        </svg>
-      </button>
-    </div>
+<body>
+  <header class="topbar">
+    <a class="logo" href="#/">
+      <span class="logo__mark" aria-hidden="true">ψ</span>
+      <span class="logo__text">Psychology Test<small>心理测试</small></span>
+    </a>
+    <nav class="topnav" aria-label="主导航">
+      <a href="#/" data-nav="home">测试</a>
+      <a href="#/history" data-nav="history">我的记录</a>
+      <a href="#/about" data-nav="about">关于</a>
+    </nav>
   </header>
 
-  <main id="mainContent">
-    <section class="hero" aria-labelledby="heroTitle">
-      <div class="hero__content">
-        <p class="wt-kicker">Mind atlas · 心智探索站</p>
-        <h1 id="heroTitle">认识自己，<br><span>从一个问题开始。</span></h1>
-        <p class="hero__lead">从人格、关系到成长状态，选择一个此刻最想了解的问题。无需登录，完成后立即获得完整结果。</p>
-        <div class="hero__actions">
-          <button class="wt-button wt-button--primary" id="openRecommendation" type="button">
-            帮我推荐
-            <span aria-hidden="true">→</span>
-          </button>
-          <a class="wt-button wt-button--secondary" href="#tests">浏览全部测试</a>
-        </div>
-        <ul class="hero__assurances" aria-label="服务特点">
-          <li>免费使用</li>
-          <li>无需登录</li>
-          <li>结果保存在本地</li>
-        </ul>
-      </div>
+  <main id="app" tabindex="-1"></main>
 
-      <figure class="atlas" aria-labelledby="atlasTitle atlasDesc">
-        <img class="atlas__art" src="assets/decorations/mind-atlas-hero.webp" alt="" width="1600" height="854" fetchpriority="high" aria-hidden="true">
-        <figcaption class="atlas__caption">
-          <span id="atlasTitle">心智探索图谱</span>
-          <span id="atlasDesc">横向由科学测评走向趣味探索，纵向由快速体验走向深度分析。</span>
-        </figcaption>
-        <span class="atlas__axis atlas__axis--left">科学测评</span>
-        <span class="atlas__axis atlas__axis--right">趣味探索</span>
-        <span class="atlas__axis atlas__axis--top">快速</span>
-        <span class="atlas__axis atlas__axis--bottom">深入</span>
-        <div class="atlas__nodes" id="atlasNodes"></div>
-      </figure>
-    </section>
-
-    <section class="discovery" id="tests" aria-labelledby="discoveryTitle">
-      <div class="section-heading">
-        <div>
-          <p class="wt-kicker">Choose your question</p>
-          <h2 id="discoveryTitle">你今天想了解什么？</h2>
-          <p>按真实目标选择，而不是先理解一长串测试名称。</p>
-        </div>
-        <label class="search-field">
-          <span class="wt-visually-hidden">搜索测试</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <input id="testSearch" type="search" placeholder="搜索测试" autocomplete="off">
-        </label>
-      </div>
-
-      <div class="goal-filter" id="goalFilter" aria-label="按探索目标筛选"></div>
-
-      <div class="results-toolbar">
-        <p id="resultSummary" role="status" aria-live="polite"></p>
-        <button class="text-action" id="resetFilters" type="button" hidden>清除筛选</button>
-      </div>
-
-      <div class="test-grid" id="testGrid"></div>
-    </section>
-
-    <section class="records" id="records" aria-labelledby="recordsTitle">
-      <div class="records__intro">
-        <p class="wt-kicker">Your traces</p>
-        <h2 id="recordsTitle">最近的探索</h2>
-        <p>结果只保存在当前浏览器中。你可以随时回到对应测试查看历史报告。</p>
-        <img src="assets/decorations/insight-orbits.webp" alt="" width="720" height="720" loading="lazy" aria-hidden="true">
-      </div>
-      <div class="records__list" id="recentRecords"></div>
-    </section>
-
-    <section class="about" id="about" aria-labelledby="aboutTitle">
-      <div class="about__statement">
-        <p class="wt-kicker">How to read a result</p>
-        <h2 id="aboutTitle">测试给你一面镜子，<br>不是一张永久标签。</h2>
-      </div>
-      <div class="about__notes">
-        <article>
-          <span>01</span>
-          <h3>看清依据</h3>
-          <p>每张测试卡都说明理论来源或趣味属性，让你知道结果应该如何理解。</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h3>结合处境</h3>
-          <p>回答反映的是此刻的状态。把结果放回真实生活，而不是用类型限制自己。</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h3>保护隐私</h3>
-          <p>测试无需账号，历史记录存放在你的设备中，清理浏览器数据也会删除记录。</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="contribute" aria-labelledby="contributeTitle">
-      <div>
-        <p class="wt-kicker">Open collection</p>
-        <h2 id="contributeTitle">让下一次探索更丰富</h2>
-        <p>有好的测试创意，或愿意一起完善题目与体验？欢迎加入这个开放项目。</p>
-      </div>
-      <div class="contribute__actions">
-        <a class="wt-button wt-button--secondary" href="https://github.com/MasterAyase/psychology-test/issues/new" target="_blank" rel="noopener">推荐新测试</a>
-        <a class="wt-button wt-button--primary" href="https://github.com/MasterAyase/psychology-test" target="_blank" rel="noopener">查看项目</a>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div>
-      <a class="brand brand--footer" href="./index.html">
-        <img src="favicon.png" alt="" width="28" height="28">
-        <span class="brand__name">Psychology Test · 心理测试</span>
-      </a>
-      <p>认识自己不是一次定论，而是一段持续更新的观察。</p>
-    </div>
+  <footer class="footer">
+    <p>测评结果仅供自我了解，不能替代专业心理咨询或诊断。</p>
     <p>© 2026 Psychology Test</p>
   </footer>
 
-  <dialog class="wt-dialog recommendation-dialog" id="recommendationDialog" aria-labelledby="recommendationTitle">
-    <div class="wt-dialog__header">
-      <div>
-        <span class="recommendation-progress" id="recommendationProgress">1 / 3</span>
-        <h2 class="wt-dialog__title" id="recommendationTitle">帮我找到合适的测试</h2>
-      </div>
-      <button class="wt-icon-button" id="closeRecommendation" type="button" aria-label="关闭推荐">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      </button>
-    </div>
-    <div class="wt-dialog__body" id="recommendationContent"></div>
-    <div class="wt-dialog__footer" id="recommendationFooter"></div>
-  </dialog>
-
-  <script src="js/config.js"></script>
-  <script src="js/history-index.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/tests/bigfive.js"></script>
+  <script src="js/tests/types16.js"></script>
+  <script src="js/tests/attachment.js"></script>
+  <script src="js/tests/tarot.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
