@@ -425,8 +425,8 @@
     nav.dataset.wtEnhanced = 'true';
     nav.innerHTML = `
       <a class="wt-nav-back" href="../../index.html">${ICONS.back}<span class="wt-nav-back__desktop">返回测试集合</span><span class="wt-nav-back__mobile">测试集合</span></a>
-      <a class="wt-nav-brand" href="../../index.html" aria-label="Wingsight 翼眸首页">
-        <img src="../../favicon.png" alt="" width="28" height="28"><span>Wingsight · 翼眸</span>
+      <a class="wt-nav-brand" href="../../index.html" aria-label="Psychology Test 心理测试首页">
+        <img src="../../favicon.png" alt="" width="28" height="28"><span>Psychology Test · 心理测试</span>
       </a>
       <button type="button" class="wt-nav-context" aria-label="返回${config.name}主页">${config.name}</button>
       <button type="button" class="wt-nav-theme" data-theme-toggle>${ICONS.sun}${ICONS.moon}</button>`;

@@ -878,7 +878,7 @@ function shareResult() {
     const text = `🌑 我在暗黑人格测试中的结果是：${name}！\n「${tagline}」\n\n📊 各维度均分：\n${parts.join('\n')}\n\n快来测测你的暗黑人格指数吧～`;
 
     if (navigator.share) {
-        navigator.share({ title: '暗黑人格测试 - Wingsight · 翼眸', text: text }).catch(() => {});
+        navigator.share({ title: '暗黑人格测试 - Psychology Test · 心理测试', text: text }).catch(() => {});
     } else {
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.querySelector('.share-btn');

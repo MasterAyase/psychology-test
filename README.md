@@ -1,11 +1,11 @@
-# Wingsight · 翼眸 ⚡
+# Psychology Test · 心理测试 ⚡
 
 <div align="center">
 
 **探索你的内心世界 · 一站式心理测试集合平台**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://heyemily-ovo.github.io/wingsight/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://masterayase.github.io/psychology-test/)
 
 </div>
 
@@ -13,7 +13,7 @@
 
 ## 📖 项目简介
 
-**Wingsight（翼眸）** 是一个集成了多种心理学测试的集合网站，涵盖 MBTI 人格测试、历史人物人格测试、恋爱类型测试、心理成熟度测试、动物人格测试、暗黑人格测试、塔罗占卜等。只需一次点击，即可跳转到你感兴趣的测试，开启自我探索之旅。
+**Psychology Test（心理测试）** 是一个集成了多种心理学测试的集合网站，涵盖 MBTI 人格测试、历史人物人格测试、恋爱类型测试、心理成熟度测试、动物人格测试、暗黑人格测试、塔罗占卜等。只需一次点击，即可跳转到你感兴趣的测试，开启自我探索之旅。
 
 ## 🧩 已集成测试
 
@@ -31,16 +31,16 @@
 
 ### 在线访问
 
-直接访问 GitHub Pages：**[https://heyemily-ovo.github.io/wingsight/](https://heyemily-ovo.github.io/wingsight/)**
+直接访问 GitHub Pages：**[https://masterayase.github.io/psychology-test/](https://masterayase.github.io/psychology-test/)**
 
 ### 本地运行
 
 ```bash
 # 克隆仓库
-git clone https://github.com/HeyEmily-ovo/wingsight.git
+git clone https://github.com/MasterAyase/psychology-test.git
 
 # 进入目录
-cd wingsight
+cd psychology-test
 
 # 使用任意静态服务器启动，例如：
 python -m http.server 8080
@@ -112,7 +112,7 @@ npx serve .
 ## 🏗️ 项目结构
 
 ```
-wingsight/
+psychology-test/
 ├── index.html                  # 主入口页面
 ├── favicon.png                 # 网站图标（翅膀大脑图案）
 ├── assets/
@@ -146,10 +146,14 @@ wingsight/
 
 ## 📄 开源协议
 
-本项目基于 [MIT License](LICENSE) 开源。
+本项目基于 [Apache License 2.0](LICENSE) 开源。
+
+## 🙏 致谢
+
+本项目改编自 [HeyEmily](https://github.com/HeyEmily-ovo) 的 [Wingsight（翼眸）](https://github.com/HeyEmily-ovo/wingsight)，主要改动是更换项目名称与品牌字样、更新仓库和部署链接。
 
 ---
 
 <div align="center">
-Made with ❤️ by <a href="https://github.com/HeyEmily-ovo">HeyEmily</a>
+Maintained by <a href="https://github.com/MasterAyase">MasterAyase</a>
 </div>
