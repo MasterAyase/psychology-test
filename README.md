@@ -26,13 +26,24 @@ python -m http.server 8080
 ```
 index.html          页面骨架
 css/app.css         全部样式
-js/app.js           路由、答题流程、结果展示、本地记录
-js/tests/*.js       各测试的题目、计分和解读
+js/app.js           路由、答题、报告、塔罗抽牌、解锁、本地记录
+js/fx.js            图表、弹窗、滚动动画、分享海报
+js/paywall.js       价格、购买链接、兑换码哈希
+js/tests/*.js       各测试的题目、计分和解读（含付费部分）
+tools/make-codes.js 兑换码生成脚本
 ```
+
+## 收费设置
+
+1. 在面包多、爱发电等平台上架"完整报告兑换码"商品，把商品链接填到 `js/paywall.js` 的 `buyUrl`。
+2. 运行 `node tools/make-codes.js 200` 生成 200 个兑换码。兑换码追加到 `codes.txt`，上传到平台作为卡密；哈希自动写进 `js/paywall.js`。`codes.txt` 已被 `.gitignore` 忽略，不要提交。
+3. 提交并推送 `js/paywall.js`。
+
+限制：网站没有后台，无法在服务器端核销兑换码。同一个码可以在不同设备上重复使用，懂技术的人也能绕过解锁。
 
 ## 添加新测试
 
-在 `js/tests/` 下新建一个文件，向 `window.PT_TESTS` 推入一个测试对象（可参考 `attachment.js`），然后在 `index.html` 里、`js/app.js` 之前引入它。首页列表会自动出现新测试。
+在 `js/tests/` 下新建一个文件，向 `window.PT_TESTS` 推入一个测试对象（可参考 `attachment.js`），然后在 `index.html` 里、`js/paywall.js` 之前引入它。首页列表会自动出现新测试。
 
 ## 免责声明
 
