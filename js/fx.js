@@ -34,7 +34,7 @@
       ${q(pad + s / 4, pad + (s * 3) / 4 + 8, '安全型')}${q(pad + (s * 3) / 4, pad + (s * 3) / 4 + 8, '回避型')}
       <text x="${pad + s / 2}" y="${pad + s + 26}" text-anchor="middle">依恋回避 →</text>
       <text x="${pad - 14}" y="${pad + s / 2}" text-anchor="middle" transform="rotate(-90 ${pad - 14} ${pad + s / 2})">依恋焦虑 →</text>
-      <circle cx="${x}" cy="${y}" r="16" style="fill:rgba(227,192,141,.15)"/>
+      <circle cx="${x}" cy="${y}" r="16" style="fill:rgba(210,176,117,.25)"/>
       <circle class="you" cx="${x}" cy="${y}" r="7"/>
     </svg>`;
   }
@@ -132,25 +132,25 @@
     const ctx = c.getContext('2d');
 
     const bg = ctx.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, '#1b1622'); bg.addColorStop(1, '#0b0a0f');
+    bg.addColorStop(0, '#fffdf8'); bg.addColorStop(1, '#f2e9d8');
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
     const glow = ctx.createRadialGradient(220, 160, 0, 220, 160, 700);
-    glow.addColorStop(0, 'rgba(160,120,60,.45)'); glow.addColorStop(1, 'rgba(160,120,60,0)');
+    glow.addColorStop(0, 'rgba(239,217,176,.7)'); glow.addColorStop(1, 'rgba(239,217,176,0)');
     ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
 
-    ctx.strokeStyle = 'rgba(227,192,141,.55)'; ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(176,138,77,.6)'; ctx.lineWidth = 2;
     ctx.strokeRect(48, 48, W - 96, H - 96);
-    ctx.strokeStyle = 'rgba(227,192,141,.2)';
+    ctx.strokeStyle = 'rgba(176,138,77,.25)';
     ctx.strokeRect(62, 62, W - 124, H - 124);
 
     const gold = ctx.createLinearGradient(0, 0, W, 0);
-    gold.addColorStop(0, '#f6dfb7'); gold.addColorStop(.5, '#e3c08d'); gold.addColorStop(1, '#b8925a');
+    gold.addColorStop(0, '#d2b075'); gold.addColorStop(.5, '#b08a4d'); gold.addColorStop(1, '#84622c');
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#e3c08d';
+    ctx.fillStyle = '#a07a3a';
     ctx.font = `28px ${SANS}`;
     ctx.fillText('P S Y C H O L O G Y   T E S T', W / 2, 150);
-    ctx.fillStyle = '#a7a196';
+    ctx.fillStyle = '#6b6257';
     ctx.font = `34px ${SANS}`;
     ctx.fillText(d.testName, W / 2, 210);
 
@@ -161,32 +161,32 @@
       ctx.fillText(d.code, W / 2, y + 60);
       y += 170;
     }
-    ctx.fillStyle = '#f3efe8';
+    ctx.fillStyle = '#221d16';
     ctx.font = `bold ${d.code ? 72 : 96}px ${SERIF}`;
     ctx.fillText(d.title, W / 2, y + 30);
     y += 110;
-    ctx.fillStyle = '#a7a196';
+    ctx.fillStyle = '#6b6257';
     ctx.font = `34px ${SANS}`;
     y = wrap(ctx, d.summary, W / 2, y, 820, 56, 3) + 40;
 
     ctx.textAlign = 'left';
     (d.lines || []).slice(0, 5).forEach((l) => {
-      ctx.fillStyle = '#f3efe8'; ctx.font = `32px ${SANS}`;
+      ctx.fillStyle = '#221d16'; ctx.font = `32px ${SANS}`;
       ctx.fillText(l.label, 150, y);
-      ctx.textAlign = 'right'; ctx.fillStyle = '#e3c08d'; ctx.font = `36px ${SERIF}`;
+      ctx.textAlign = 'right'; ctx.fillStyle = '#a07a3a'; ctx.font = `36px ${SERIF}`;
       ctx.fillText(l.text != null ? l.text : Math.round(l.value), W - 150, y);
       ctx.textAlign = 'left';
       if (l.value != null) {
-        ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fillRect(150, y + 22, W - 300, 6);
+        ctx.fillStyle = 'rgba(70,50,20,.1)'; ctx.fillRect(150, y + 22, W - 300, 6);
         ctx.fillStyle = gold; ctx.fillRect(150, y + 22, ((W - 300) * l.value) / 100, 6);
       }
       y += 96;
     });
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#6f6a62'; ctx.font = `28px ${SANS}`;
+    ctx.fillStyle = '#9a9184'; ctx.font = `28px ${SANS}`;
     ctx.fillText('想知道你的结果？访问', W / 2, H - 190);
-    ctx.fillStyle = '#e3c08d'; ctx.font = `32px ${SANS}`;
+    ctx.fillStyle = '#a07a3a'; ctx.font = `32px ${SANS}`;
     ctx.fillText(d.url, W / 2, H - 140);
     return c.toDataURL('image/png');
   }

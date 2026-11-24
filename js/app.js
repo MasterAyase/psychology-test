@@ -175,7 +175,7 @@
         <div class="facts">
           <div><strong>${t.items.length}</strong>道题</div>
           <div><strong>${t.minutes}′</strong>预计用时</div>
-          <div><strong>¥${esc(PAY.price)}</strong>完整报告</div>
+          <div><strong>5</strong>级选项</div>
         </div>
         <div class="actions">
           <a class="btn" href="#/run/${t.id}">开始测评 ${ARROW}</a>
@@ -322,8 +322,7 @@
       <div class="locked__veil"><div>
         <span class="eyebrow">Full report</span>
         <h3>解锁你的完整报告</h3>
-        <p>${sections.map((s) => esc(s.h)).join(' · ')}</p>
-        <div class="price gold-text"><small>¥</small>${esc(PAY.price)}</div>
+        <p style="margin-bottom:22px">${sections.map((s) => esc(s.h)).join(' · ')}</p>
         <button type="button" class="btn" data-unlock="${esc(rec.id)}">立即解锁</button>
       </div></div>`;
     return `<div class="locked reveal ${open ? '' : 'is-locked'}">
@@ -474,7 +473,7 @@
   /* ---------- 解锁与分享 ---------- */
   function openUnlock(recId) {
     const buy = PAY.buyUrl
-      ? `<a class="btn" href="${esc(PAY.buyUrl)}" target="_blank" rel="noopener" style="width:100%">去购买兑换码 · ¥${esc(PAY.price)}</a>`
+      ? `<a class="btn" href="${esc(PAY.buyUrl)}" target="_blank" rel="noopener" style="width:100%">去购买兑换码</a>`
       : '<p class="field__msg" style="color:var(--text-3)">购买渠道即将开放。</p>';
     const m = modal(`
       <span class="eyebrow">Unlock</span>
@@ -598,7 +597,7 @@
     return `<section class="prose page-in">
       <span class="eyebrow">About</span>
       <h1>关于</h1>
-      <p>Psychology Test 是一个个人制作的在线心理测评网站。基础结果免费查看，完整报告 ¥${esc(PAY.price)} 解锁。</p>
+      <p>Psychology Test 是一个个人制作的在线心理测评网站。基础结果免费查看，完整报告使用兑换码解锁。</p>
       <h2>隐私</h2>
       <p>网站没有后台服务器，你的答案和报告只存储在当前浏览器的本地存储中。清除浏览器数据或点击"清空全部记录"即可删除。</p>
       <h2>题目来源</h2>
