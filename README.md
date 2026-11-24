@@ -148,10 +148,6 @@ psychology-test/
 
 本项目基于 [Apache License 2.0](LICENSE) 开源。
 
-## 🙏 致谢
-
-本项目改编自 [HeyEmily](https://github.com/HeyEmily-ovo) 的 [Wingsight（翼眸）](https://github.com/HeyEmily-ovo/wingsight)，主要改动是更换项目名称与品牌字样、更新仓库和部署链接。
-
 ---
 
 <div align="center">
