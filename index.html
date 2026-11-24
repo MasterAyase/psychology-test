@@ -3,25 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f8f5ef">
-  <title>Psychology Test · 心理测试</title>
-  <meta name="description" content="几分钟读懂自己：大五人格、16 型人格倾向、恋爱依恋风格与塔罗指引。无需注册，结果只保存在你的浏览器里。">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23fffdf8'/%3E%3Ccircle cx='32' cy='32' r='27' fill='none' stroke='%23b08a4d' stroke-width='2'/%3E%3Ctext x='32' y='43' font-size='30' text-anchor='middle' fill='%23a07a3a' font-family='serif'%3E%CF%88%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/app.css">
+  <meta name="theme-color" content="#f6f0e4">
+  <title>缘分星盘 · 八字正缘测算</title>
+  <meta name="description" content="输入生辰八字，看你的正缘画像、姻缘流年、本命星宿，以及两个人的合婚指数。免费、无需注册。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='10' fill='%23b5372a'/%3E%3Crect x='9' y='9' width='46' height='46' rx='6' fill='none' stroke='%23fff5ec' stroke-width='2'/%3E%3Ctext x='32' y='44' font-size='30' text-anchor='middle' fill='%23fff5ec' font-family='serif'%3E%E7%BC%98%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="aura" aria-hidden="true"><span></span><span></span><span></span></div>
-
   <header class="topbar">
     <div class="topbar__inner">
       <a class="logo" href="#/">
-        <span class="logo__mark" aria-hidden="true">ψ</span>
-        <span class="logo__text">Psychology Test<small>心理测试</small></span>
+        <span class="seal" aria-hidden="true"><span>缘</span></span>
+        <span class="logo__text">缘分星盘<small>FATE CHART</small></span>
       </a>
       <nav class="topnav" aria-label="主导航">
-        <a href="#/" data-nav="home">测试</a>
-        <a href="#/history" data-nav="history">我的记录</a>
-        <a href="#/about" data-nav="about">关于</a>
+        <a href="#/bazi" data-nav="bazi">正缘</a>
+        <a href="#/hehun" data-nav="hehun">合婚</a>
+        <a href="#/xiu" data-nav="xiu">星宿</a>
+        <a href="psych/">心理测评</a>
       </nav>
     </div>
   </header>
@@ -29,17 +28,14 @@
   <main id="app" tabindex="-1"></main>
 
   <footer class="footer">
-    <p>测评结果仅供自我了解，不能替代专业心理咨询或诊断。</p>
-    <p>© 2026 Psychology Test</p>
+    <p>测算内容源自传统文化，仅供娱乐参考。</p>
+    <p><a href="#/about">关于</a> · © 2026 缘分星盘</p>
   </footer>
 
-  <script src="js/tests/bigfive.js"></script>
-  <script src="js/tests/types16.js"></script>
-  <script src="js/tests/attachment.js"></script>
-  <script src="js/tests/tarot.js"></script>
-  <script src="js/paywall.js"></script>
-  <script src="js/fx.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/xiu.js"></script>
+  <script src="js/fate.js"></script>
   <script src="js/art.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

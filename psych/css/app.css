@@ -586,8 +586,11 @@ main:focus, main:focus-visible { outline: none; }
 }
 @keyframes sheet { from { transform: translateY(100%); } }
 
-@media (max-width: 340px) {
+@media (max-width: 420px) {
   .logo__text { display: none; }
+}
+
+@media (max-width: 340px) {
   .hero__stats { gap: 20px; }
   .opt__dots { display: none; }
 }
