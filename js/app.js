@@ -8,7 +8,6 @@
   const UNLOCK_KEY = 'pt_unlocked_v1';
   const MAX_RECORDS = 50;
   const SCALE = ['非常不同意', '不同意', '说不清', '同意', '非常同意'];
-  const GLYPH = { 'big-five': 'V', types16: 'XVI', attachment: '♡', tarot: '☽' };
   const SITE_URL = location.host + location.pathname.replace(/index\.html$/, '');
 
   // 每个维度的得分换算为 0–100
@@ -105,7 +104,7 @@
   function renderHome() {
     const tiles = tests.map((t, i) => `
       <a class="test-tile reveal" href="#/test/${t.id}" style="transition-delay:${i * 80}ms">
-        <span class="test-tile__glyph" aria-hidden="true">${GLYPH[t.id] || ''}</span>
+        <span class="test-tile__art">${ART.test(t.id)}</span>
         <span class="test-tile__num">NO.${String(i + 1).padStart(2, '0')}</span>
         <h2>${esc(t.name)}</h2>
         <p>${esc(t.short)}</p>
@@ -118,11 +117,8 @@
     const total = tests.reduce((n, t) => n + (t.items ? t.items.length : 0), 0);
     return `
       <section class="hero page-in">
-        <svg class="hero__orb" viewBox="0 0 300 300" aria-hidden="true">
-          <g class="spin"><circle cx="150" cy="150" r="140" stroke-dasharray="2 8"/><circle cx="150" cy="10" r="4" style="fill:var(--gold);stroke:none"/></g>
-          <g class="spin spin--rev"><circle cx="150" cy="150" r="96"/><circle cx="246" cy="150" r="3" style="fill:var(--gold);stroke:none"/></g>
-          <circle cx="150" cy="150" r="52" stroke-dasharray="1 5"/>
-        </svg>
+        <div class="hero__art">${ART.hero()}</div>
+        <span class="hero__spark s1">${ART.star('twinkle')}</span><span class="hero__spark s2">${ART.star('twinkle d2')}</span><span class="hero__spark s3">${ART.star('twinkle d3')}</span>
         <span class="eyebrow">Know yourself, gently</span>
         <h1>花几分钟<br><span class="gold-text">读懂此刻的自己</span></h1>
         <p>基于心理学研究设计的测评，答完即刻生成你的个人报告。无需注册，所有数据只留在你的设备上。</p>
@@ -132,11 +128,16 @@
           <div><strong>0</strong><span>数据上传</span></div>
         </div>
       </section>
+      <div class="section-head reveal">
+        <span class="eyebrow">Choose one</span>
+        <h2>选一个此刻最想了解的问题</h2>
+        ${ART.divider()}
+      </div>
       <section class="tests">${tiles}</section>
       <section class="promise">
-        <div class="reveal"><strong>有依据</strong><span>题目来自公开的心理学量表与理论模型，不靠玄学凑数。</span></div>
-        <div class="reveal"><strong>看得懂</strong><span>用日常语言解释分数，告诉你它在生活里意味着什么。</span></div>
-        <div class="reveal"><strong>重隐私</strong><span>没有账号、没有后台，答案和报告只保存在你的浏览器里。</span></div>
+        <div class="reveal">${ART.star()}<strong>有依据</strong><span>题目来自公开的心理学量表与理论模型，不靠玄学凑数。</span></div>
+        <div class="reveal">${ART.star()}<strong>看得懂</strong><span>用日常语言解释分数，告诉你它在生活里意味着什么。</span></div>
+        <div class="reveal">${ART.star()}<strong>重隐私</strong><span>没有账号、没有后台，答案和报告只保存在你的浏览器里。</span></div>
       </section>`;
   }
 
@@ -160,6 +161,7 @@
           <span>${esc(s.desc)}</span>
         </a>`).join('');
       return `<section class="intro page-in">
+        <div class="intro__art">${ART.test(t.id)}</div>
         <span class="eyebrow">Tarot · Major Arcana</span>
         <h1>${esc(t.name)}</h1>
         <div>${paras}</div>
@@ -169,6 +171,7 @@
     }
     return `
       <section class="intro page-in">
+        <div class="intro__art">${ART.test(t.id)}</div>
         <span class="eyebrow">${esc(t.basis)}</span>
         <h1>${esc(t.name)}</h1>
         <div>${paras}</div>
@@ -274,7 +277,7 @@
 
   function showLoading(text, done) {
     app.innerHTML = `<section class="loading"><div>
-      <svg class="loading__ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" cx="50" cy="50" r="44"/></svg>
+      <div class="loading__art">${ART.hero()}</div>
       <p>${esc(text)}</p><small>分析维度 · 匹配解读 · 排版报告</small></div></section>`;
     setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 1700);
   }
@@ -320,6 +323,7 @@
     const open = isUnlocked(rec.id);
     const veil = open ? '' : `
       <div class="locked__veil"><div>
+        ${ART.lock()}
         <span class="eyebrow">Full report</span>
         <h3>解锁你的完整报告</h3>
         <p style="margin-bottom:22px">${sections.map((s) => esc(s.h)).join(' · ')}</p>
@@ -335,10 +339,12 @@
   function heroHTML(t, rec, code, title, summary) {
     const letters = code ? `      <div class="report__code">${[...code].map((ch, i) => `<span style="animation-delay:${0.15 + i * 0.12}s">${esc(ch)}</span>`).join('')}</div>` : '';
     return `<div class="report__hero page-in">
+      <div class="report__halo">${ART.test(t.id)}</div>
       <span class="eyebrow">${esc(t.name)} · ${formatDate(rec.ts)}</span>
       ${letters}
       <h1>${esc(title)}</h1>
       <p>${esc(summary)}</p>
+      <div class="report__divider">${ART.divider()}</div>
       <div class="actions">
         <button type="button" class="btn" data-poster="${esc(rec.id)}">生成分享海报</button>
         <a class="btn btn--ghost" href="#/test/${t.id}">再测一次</a>
@@ -415,8 +421,8 @@
       const a = -42 + (84 * i) / (n - 1);
       const sx = Math.round(Math.sin(i * 12.9898) * 160);
       return `<button type="button" class="tcard" data-pick="${i}" aria-label="第 ${i + 1} 张牌"
-        style="--i:${i};--fan:translate(-50%,0) rotate(${a}deg);--sx:${sx}px;--sr:${sx / 8}deg;z-index:${i}">
-        <span class="card-back"></span></button>`;
+        style="--i:${i};--a:${a.toFixed(2)}deg;--sx:${sx}px;--sr:${sx / 8}deg;z-index:${i}">
+        <span class="card-back">${ART.cardEmblem()}</span></button>`;
     }).join('');
     const slots = spread.positions.map((p) => `<div class="slot"><div class="slot__frame">待抽取</div><div class="slot__name">${esc(p)}</div></div>`).join('');
     app.innerHTML = `<section class="table page-in">
@@ -444,7 +450,7 @@
     btn.classList.add('is-taken');
     const frame = app.querySelectorAll('.slot__frame')[tarot.picks.length - 1];
     frame.style.borderStyle = 'none';
-    frame.innerHTML = `<div class="flip"><span class="card-back"></span>${faceHTML(t, card)}</div>`;
+    frame.innerHTML = `<div class="flip"><span class="card-back">${ART.cardEmblem()}</span>${faceHTML(t, card)}</div>`;
     const tip = app.querySelector('.table__tip');
     if (tarot.picks.length < need) {
       tip.textContent = `还需要选 ${need - tarot.picks.length} 张`;
@@ -559,7 +565,7 @@
     const list = loadRecords();
     if (!list.length) {
       return `<section class="history page-in"><span class="eyebrow">History</span><h1>我的记录</h1>
-        <div class="empty"><p>还没有记录。完成一个测评后，报告会保存在这里。</p><a class="btn" href="#/">去做测评</a></div></section>`;
+        <div class="empty"><div class="empty__art">${ART.test('tarot')}</div><p>还没有记录。完成一个测评后，报告会保存在这里。</p><a class="btn" href="#/">去做测评</a></div></section>`;
     }
     const items = list.map((r) => `
       <li class="history-item">
