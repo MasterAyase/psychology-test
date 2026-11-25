@@ -52,6 +52,44 @@
   const ganHTML = (g) => `<b class="wx-${GAN_WX[g]}">${GAN[g]}</b>`;
   const zhiHTML = (z) => `<b class="wx-${ZHI_WX[z]}">${ZHI[z]}</b>`;
 
+  // 年、月、日三个下拉框，替代原生日期控件（原生控件的年份很难用滚轮选择）
+  const daysIn = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+  function dayOptions(y, m, sel) {
+    const n = y && m ? daysIn(y, m) : 31;
+    return '<option value="">日</option>' + Array.from({ length: n }, (_, i) => `<option value="${i + 1}" ${sel === i + 1 ? 'selected' : ''}>${i + 1} 日</option>`).join('');
+  }
+
+  function dateField(name, label, value) {
+    const [y, m, d] = /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value.split('-').map(Number) : [0, 0, 0];
+    const top = Math.min(new Date().getFullYear(), Number(MAX.slice(0, 4)));
+    const bottom = Number(MIN.slice(0, 4));
+    const years = '<option value="">年</option>' + Array.from({ length: top - bottom + 1 }, (_, i) => top - i).map((yy) => `<option value="${yy}" ${yy === y ? 'selected' : ''}>${yy} 年</option>`).join('');
+    const months = '<option value="">月</option>' + Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === m ? 'selected' : ''}>${i + 1} 月</option>`).join('');
+    return `<div class="field"><span id="${name}-label">${label}</span>
+      <div class="date3" data-date="${name}" role="group" aria-labelledby="${name}-label">
+        <select data-part="y" aria-label="年">${years}</select>
+        <select data-part="m" aria-label="月">${months}</select>
+        <select data-part="d" aria-label="日">${dayOptions(y, m, d)}</select>
+      </div>
+      <input type="hidden" name="${name}" value="${y ? esc(value) : ''}"></div>`;
+  }
+
+  // 选择变化时同步隐藏字段，并按年月更新天数
+  app.addEventListener('change', (e) => {
+    const box = e.target.closest('.date3');
+    if (!box) return;
+    const [ys, ms, ds] = ['y', 'm', 'd'].map((k) => box.querySelector(`[data-part="${k}"]`));
+    const y = Number(ys.value);
+    const m = Number(ms.value);
+    let d = Number(ds.value);
+    if (e.target !== ds) {
+      if (y && m && d > daysIn(y, m)) d = daysIn(y, m);
+      ds.innerHTML = dayOptions(y, m, d);
+    }
+    const hidden = box.parentNode.querySelector(`input[name="${box.dataset.date}"]`);
+    hidden.value = y && m && d ? `${y}-${pad(m)}-${pad(d)}` : '';
+  });
+
   function personFields(prefix, title, v) {
     v = v || {};
     const opts = ['<option value="-1">不清楚</option>'].concat(SHICHEN.map((s, i) => `<option value="${i}" ${String(v.t) === String(i) ? 'selected' : ''}>${s}</option>`)).join('');
@@ -59,7 +97,7 @@
       <legend class="person__title" style="padding:0">${title}</legend>
       <label class="field"><span>称呼（选填）</span><input name="${prefix}n" maxlength="12" value="${esc(v.n || '')}" placeholder="例如：小满"></label>
       <div class="row">
-        <label class="field"><span>公历生日</span><input type="date" name="${prefix}d" min="${MIN}" max="${MAX}" value="${esc(v.d || '')}" required></label>
+        ${dateField(prefix + 'd', '公历生日', v.d)}
         <label class="field"><span>出生时辰</span><select name="${prefix}t">${opts}</select></label>
       </div>
       <div class="field"><span>性别</span><div class="seg" role="radiogroup">
@@ -328,8 +366,8 @@
         <p class="muted" style="max-width:34em;margin:0 auto">宿曜法以农历生日推算本命宿，二十八宿中牛宿并入女宿，共二十七宿。填上 TA 的生日，还能看两人的星宿关系。</p>${ART.divider()}</div>
       <form class="panel" data-form="xiu" novalidate style="max-width:640px;margin:0 auto">
         <div class="row">
-          <label class="field"><span>你的公历生日</span><input type="date" name="d" min="${MIN}" max="${MAX}" value="${esc(q.get('d') || (last.a && last.a.d) || '')}" required></label>
-          <label class="field"><span>TA 的公历生日（选填）</span><input type="date" name="o" min="${MIN}" max="${MAX}" value="${esc(q.get('o') || '')}"></label>
+          ${dateField('d', '你的公历生日', q.get('d') || (last.a && last.a.d) || '')}
+          ${dateField('o', 'TA 的公历生日（选填）', q.get('o') || '')}
         </div>
         <p class="form-error" aria-live="polite"></p>
         <button class="btn" type="submit" style="width:100%">查询星宿</button>
