@@ -56,13 +56,19 @@
   // 显示用的名称；键名为了便于引用而去掉了分隔符
   const LABEL = { 身强身弱: '身强 · 身弱', 元男元女: '元男 · 元女', 相生相克: '相生 · 相克', 财星官星透出: '财星 · 官星透出', 远近距离: '近 · 中 · 远' };
 
-  function render(keys) {
+  // 配偶星：有命盘信息时直接用本人的五行举例
+  const ORDER = '木制约土、土制约水、水制约火、火制约金、金制约木';
+  G.配偶星 = (ctx) => (ctx && ctx.dm
+    ? `代表另一半的五行。你的日主属${ctx.dm}，按传统说法，${ctx.gender === 'm' ? `男命的妻星是被${ctx.dm}制约的那一行` : `女命的夫星是能制约${ctx.dm}的那一行`}，也就是${ctx.sp}，所以你的正缘五行为${ctx.sp}。（${ORDER}）`
+    : `代表另一半的五行。按传统说法，男命的妻星是被自己日主制约的那一行，女命的夫星是能制约自己日主的那一行。例如日主属木：男命妻星属土，女命夫星属金。（${ORDER}）`);
+
+  function render(keys, ctx) {
     const seen = new Set();
     const rows = keys.filter((k) => G[k] && !seen.has(k) && seen.add(k))
-      .map((k) => `<dt>${LABEL[k] || k}</dt><dd>${G[k]}</dd>`).join('');
+      .map((k) => `<dt>${LABEL[k] || k}</dt><dd>${typeof G[k] === 'function' ? G[k](ctx) : G[k]}</dd>`).join('');
     // 手机上默认收起，避免报告过长
     const open = !window.matchMedia || window.matchMedia('(min-width: 721px)').matches ? ' open' : '';
-    return rows ? `<details class="terms"${open}><summary>名词解释<span>${seen.size} 个</span></summary><dl>${rows}</dl></details>` : '';
+    return rows ? `<details class="terms"${open}><summary>名词解释</summary><dl>${rows}</dl></details>` : '';
   }
 
   window.GLOSSARY = { terms: G, render };
