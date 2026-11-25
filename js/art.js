@@ -142,8 +142,8 @@
     return svg('-60 -60 120 120', `<circle r="56" stroke-width=".6" stroke-dasharray="1 3" opacity=".6"/>${constellationBody(i28, 70, 0, 0, 'const-glow')}`, 'art art--const');
   }
 
-  // 全幅星图：二十八宿分野、黄道、北斗与背景星
-  function starMap(active27) {
+  // 全幅星图：二十八宿分野、黄道、北斗与背景星；zodiac 为 true 时外圈改为黄道十二宫
+  function starMap(active27, zodiac) {
     const active = active27 == null ? -1 : active27 < 8 ? active27 : active27 + 1;
     const r = rng(2026);
     let bg = '';
@@ -162,12 +162,19 @@
       const [cx, cy] = polar(500, 500, 385, (360 / 28) * i + 360 / 56);
       return constellationBody(i, 56, cx, cy, i === active ? 'is-active' : '');
     }).join('');
-    const names = XIU28.map((t, i) => {
-      const deg = (360 / 28) * i + 360 / 56;
-      const [x, y] = polar(500, 500, 470, deg);
-      return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="16" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none" class="${i === active ? 'is-active' : ''}" transform="rotate(${deg.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})">${t}</text>`;
-    }).join('');
-    const xiang = ['东方青龙', '北方玄武', '西方白虎', '南方朱雀'].map((g, i) => {
+    const ZG = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+    const names = zodiac
+      ? ZG.map((g, i) => {
+        const deg = i * 30 + 15;
+        const [x, y] = polar(500, 500, 470, deg);
+        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="26" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none" transform="rotate(${deg} ${x.toFixed(1)} ${y.toFixed(1)})">${g}&#xFE0E;</text>`;
+      }).join('')
+      : XIU28.map((t, i) => {
+        const deg = (360 / 28) * i + 360 / 56;
+        const [x, y] = polar(500, 500, 470, deg);
+        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="16" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none" class="${i === active ? 'is-active' : ''}" transform="rotate(${deg.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})">${t}</text>`;
+      }).join('');
+    const xiang = zodiac ? '' : ['东方青龙', '北方玄武', '西方白虎', '南方朱雀'].map((g, i) => {
       const [x, y] = polar(500, 500, 262, ((i * 7 + 3.5) * 360) / 28);
       return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="17" letter-spacing="6" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none" opacity=".7">${g}</text>`;
     }).join('');
@@ -180,8 +187,8 @@
         <circle cx="500" cy="500" r="440" stroke-width=".8"/>
         <circle cx="500" cy="500" r="330" stroke-width=".6"/>
         ${ticks}
-        ${spokes(500, 500, 330, 440, 28, 0)}
-        ${spokes(500, 500, 0, 330, 4, -360 / 56)}
+        ${spokes(500, 500, 330, 440, zodiac ? 12 : 28, 0)}
+        ${zodiac ? '' : spokes(500, 500, 0, 330, 4, -360 / 56)}
         ${consts}${names}${xiang}
         <circle cx="520" cy="486" r="300" stroke-width=".6" stroke-dasharray="6 8" opacity=".6"/>
       </g>
@@ -221,5 +228,34 @@
     </svg>`;
   }
 
-  window.ART = { compass, cloud, seal, knot, divider, xiuRing, constellation, starMap, xiangMap, logo };
+  // 黄道十二宫轮：外圈星座符号，内部四个三角对应火土风水四元素的三分相
+  function zodiacWheel() {
+    const G = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+    const glyphs = G.map((g, i) => {
+      const [x, y] = polar(200, 200, 164, i * 30 + 15);
+      return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="22" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none">${g}&#xFE0E;</text>`;
+    }).join('');
+    const tri = [0, 1, 2, 3].map((e) => {
+      const pts = [0, 4, 8].map((k) => polar(200, 200, 128, (e + k) * 30 + 15).map((v) => v.toFixed(1)).join(',')).join(' ');
+      return `<polygon points="${pts}" stroke-width=".8" opacity="${e === 0 ? .9 : .45}"/>`;
+    }).join('');
+    const dots = Array.from({ length: 12 }, (_, i) => {
+      const [x, y] = polar(200, 200, 128, i * 30 + 15);
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="currentColor" stroke="none"/>`;
+    }).join('');
+    return svg('0 0 400 400', `
+      <g class="spin" style="transform-origin:200px 200px">
+        <circle cx="200" cy="200" r="196" stroke-width=".6" stroke-dasharray="1 5"/>
+        <circle cx="200" cy="200" r="188" stroke-width=".9"/>
+        <circle cx="200" cy="200" r="140" stroke-width=".9"/>
+        ${spokes(200, 200, 140, 188, 12, 0)}
+        ${glyphs}
+      </g>
+      ${tri}${dots}
+      <circle cx="200" cy="200" r="46" stroke-width=".8" stroke-dasharray="2 4"/>
+      <circle cx="200" cy="200" r="18" fill="currentColor" stroke="none" opacity=".85"/>
+      ${spokes(200, 200, 24, 40, 12, 0)}`, 'art art--wheel');
+  }
+
+  window.ART = { compass, cloud, seal, knot, divider, xiuRing, constellation, starMap, xiangMap, logo, zodiacWheel };
 })();

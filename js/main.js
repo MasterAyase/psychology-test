@@ -132,7 +132,8 @@
     const features = [
       ['#/bazi', '八字正缘', '排出四柱八字，看正缘的性情、方位，以及未来十年里最容易相遇的年份。'],
       ['#/hehun', '双人合婚', '以宿曜、生肖、日柱、五行与配偶星五个维度，测两人缘分的深浅。'],
-      ['#/xiu', '星宿查询', '依宿曜法由农历生日推得本命宿，再看你与 TA 属于哪一种星宿关系。']
+      ['#/xiu', '星宿查询', '依宿曜法由农历生日推得本命宿，再看你与 TA 属于哪一种星宿关系。'],
+      ['#/star', '星座配对', '选出两个人的星座，从相位、元素和模式看你们有多合拍。']
     ].map(([href, h, p], i) => `
       <a class="feature" href="${href}">
         <span class="feature__no">${NUM[i]}</span>
@@ -461,6 +462,141 @@
     </section>`;
   }
 
+  /* ---------- 星座配对 ---------- */
+  const STAR_TIPS = [
+    '你们太懂彼此了，偶尔一起尝试一件都没做过的事，会给默契加点新鲜感。',
+    '像好朋友一样自在，多分享各自擅长的东西，你们会一起成长得很快。',
+    '你们是天生的搭档，一起定个小目标，配合起来会特别有成就感。',
+    '火花是你们的魅力所在，把这份能量用在一起挑战新事物上，感情会越来越热烈。',
+    '相处自然顺畅，记得在舒服的日常里留一点仪式感，让幸福看得见。',
+    '对方的世界和你很不一样，保持好奇、多问多听，会发现很多惊喜。',
+    '你们最容易被彼此吸引，互相学习对方的长处，会成为彼此的另一半拼图。'
+  ];
+
+  function scoreRing(score, label) {
+    const R = 96;
+    const C = 2 * Math.PI * R;
+    const ticks = Array.from({ length: 60 }, (_, i) => {
+      const t = (i / 60) * Math.PI * 2;
+      const r1 = i % 5 ? 106 : 102;
+      return `<line class="tick" x1="${(110 + Math.cos(t) * r1).toFixed(1)}" y1="${(110 + Math.sin(t) * r1).toFixed(1)}" x2="${(110 + Math.cos(t) * 110).toFixed(1)}" y2="${(110 + Math.sin(t) * 110).toFixed(1)}"/>`;
+    }).join('');
+    return `<div class="score"><svg viewBox="0 0 220 220" aria-hidden="true">${ticks}
+        <circle class="bg" cx="110" cy="110" r="${R}"/>
+        <circle class="fg" cx="110" cy="110" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" data-offset="${(C * (1 - score / 100)).toFixed(1)}"/>
+      </svg><div class="score__num"><b>${score}</b><span>${label}</span></div></div>`;
+  }
+
+  const glyph = (g) => `${g}&#xFE0E;`;
+
+  function signPicker(side, title, sel) {
+    const cells = window.STAR.SIGNS.map((_, i) => {
+      const s = window.STAR.info(i);
+      return `<button type="button" class="sign ${sel === i ? 'is-on' : ''}" data-sign="${side}" data-i="${i}" aria-pressed="${sel === i}">
+        <span class="sign__g">${glyph(s.glyph)}</span><b>${s.name}</b><small>${s.range}</small></button>`;
+    }).join('');
+    return `<fieldset class="person">
+      <legend>${title}</legend>
+      <div class="signs" role="group" aria-label="${title}">${cells}</div>
+      <input type="hidden" name="${side}" value="${sel == null ? '' : sel}">
+      <details class="lookup"><summary>不知道星座？按生日查</summary>${dateField(side + '_d', '公历生日', '')}</details>
+    </fieldset>`;
+  }
+
+  function starMatrix() {
+    const S = window.STAR;
+    const head = S.SIGNS.map((s) => `<th scope="col" title="${s[0]}">${glyph(s[1])}</th>`).join('');
+    const rows = S.SIGNS.map((s, a) => {
+      const cells = S.SIGNS.map((_, b) => {
+        const r = S.match(a, b);
+        const alpha = ((r.score - 74) / 24).toFixed(2);
+        return `<td><a href="#/star/r?a=${a}&b=${b}" style="--a:${alpha}" title="${s[0]} × ${S.SIGNS[b][0]}：${r.score}">${r.score}</a></td>`;
+      }).join('');
+      return `<tr><th scope="row">${glyph(s[1])}<span>${s[0].replace('座', '')}</span></th>${cells}</tr>`;
+    }).join('');
+    return `<div class="matrix-wrap"><table class="matrix"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function renderStarForm(q) {
+    const a = q.get('a') !== null && q.get('a') !== '' ? Number(q.get('a')) : null;
+    return `<section class="report page-in">
+      <div class="xiu-hero">
+        <div><span class="eyebrow">十二星座 · 配对</span><h1>星座合不合</h1>
+          <p>依据西方占星的太阳星座相位，看两个星座在黄道上的角度关系，再结合元素与模式，算出你们的契合度。</p></div>
+        <div class="star-hero-art">${ART.zodiacWheel()}</div>
+      </div>
+      <form class="star-form" data-form="star" novalidate autocomplete="off">
+        <div class="cols">${signPicker('a', '你的星座', a)}${signPicker('b', 'TA 的星座', null)}</div>
+        <p class="form-error" aria-live="polite"></p>
+        <button class="btn btn--red" type="submit">看看合不合 <span class="arrow">→</span></button>
+      </form>
+      <section class="sec"><div class="sec__head"><span class="sec__no">一览</span><h2>十二星座配对表</h2><p>点击任意格子查看详细解读</p></div>
+        <div class="sec__body">${starMatrix()}</div></section>
+      <p class="notice">星座配对为趣味参考，解读文字为本站原创。</p>
+    </section>`;
+  }
+
+  function signCard(s, who) {
+    return `<div class="sign-card"><span class="sign-card__g">${glyph(s.glyph)}</span>
+      <span class="eyebrow">${esc(who)}</span><h3>${s.name}</h3>
+      <p class="dots"><span>${s.range}</span><span>${s.element}</span><span>${s.mode}星座</span></p>
+      <div class="tags">${s.tags.split(' · ').map((t) => `<span class="tag">${t}</span>`).join('')}</div>
+      <p>${esc(s.text)}</p></div>`;
+  }
+
+  function renderStarReport(q) {
+    const S = window.STAR;
+    const a = Number(q.get('a'));
+    const b = Number(q.get('b'));
+    if (!(a >= 0 && a < 12 && b >= 0 && b < 12) || q.get('a') === '' || q.get('b') === '') return renderNotFound('请先选择两个星座。', '#/star');
+    const A = S.info(a);
+    const B = S.info(b);
+    const r = S.match(a, b);
+    const dims = r.dims.map(([k, v]) => `<div class="dim"><span class="dim__name">${k}</span><div class="dim__track"><i class="dim__fill" data-w="${v}"></i></div><em class="up">${v}</em></div>`).join('');
+    const modeText = r.sameMode ? `你们都是${A.mode}星座，做事节奏一致，很容易步调统一。` : `你们一个是${A.mode}星座、一个是${B.mode}星座，节奏互补，正好能取长补短。`;
+    const elementTerms = [A.element + '星座', B.element + '星座', A.mode + '星座', B.mode + '星座'];
+    return `<section class="report page-in">
+      <div class="match-head">
+        <div class="who"><span class="big-glyph">${glyph(A.glyph)}</span><h2>${A.name}</h2><p>${A.element} · ${A.mode}</p></div>
+        ${scoreRing(r.score, '契合指数')}
+        <div class="who"><span class="big-glyph">${glyph(B.glyph)}</span><h2>${B.name}</h2><p>${B.element} · ${B.mode}</p></div>
+      </div>
+      <div class="grade">${r.aspect.title} · ${r.aspect.name}</div>
+      <section class="dims"><div class="dims__head"><span>四维契合</span><small>爱情、友情、沟通、默契</small></div>${dims}</section>
+      ${sec(0, '相位解读', r.aspect.name + ' · 相隔 ' + r.dist + ' 个星座', `<p>${esc(r.aspect.text)}</p><p>${esc(r.element)}</p><p>${esc(modeText)}</p>`, [r.aspect.name])}
+      ${sec(1, '你们的星座', '', `<div class="cols">${signCard(A, '你')}${signCard(B, 'TA')}</div>`, Array.from(new Set(elementTerms)))}
+      ${sec(2, '相处建议', '', `<ol class="advice"><li>${esc(STAR_TIPS[r.dist])}</li><li>${esc(r.element)}</li></ol>`)}
+      <div class="actions">
+        <a class="btn btn--red" href="#/star?a=${a}">换个星座再测 <span class="arrow">→</span></a>
+        <button type="button" class="btn btn--ghost" data-copy>复制配对链接</button>
+        <a class="btn btn--ghost" href="#/hehun">试试八字合婚</a>
+      </div>
+      <p class="notice">星座配对为趣味参考，仅供娱乐。</p>
+    </section>`;
+  }
+
+  // 星座选择与按生日查星座
+  app.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-sign]');
+    if (!btn) return;
+    const side = btn.dataset.sign;
+    const form = btn.closest('form');
+    form.querySelectorAll(`[data-sign="${side}"]`).forEach((x) => { x.classList.toggle('is-on', x === btn); x.setAttribute('aria-pressed', x === btn); });
+    form.querySelector(`input[name="${side}"]`).value = btn.dataset.i;
+  });
+  app.addEventListener('change', (e) => {
+    const box = e.target.closest('.date3');
+    if (!box || !/^[ab]_d$/.test(box.dataset.date)) return;
+    const form = box.closest('form');
+    const v = form.querySelector(`input[name="${box.dataset.date}"]`).value;
+    if (!v) return;
+    const [, m, d] = v.split('-').map(Number);
+    const i = window.STAR.signOf(m, d);
+    const side = box.dataset.date.charAt(0);
+    form.querySelector(`[data-sign="${side}"][data-i="${i}"]`).click();
+    toast('这个生日属于' + window.STAR.SIGNS[i][0]);
+  });
+
   /* ---------- 星宿查询 ---------- */
   function renderXiu(q) {
     const me = q.get('d') ? profile({ d: q.get('d'), t: '-1', g: 'f' }) : null;
@@ -552,6 +688,12 @@
       Object.entries(a).forEach(([k, v]) => { q['a_' + k] = v; });
       Object.entries(b).forEach(([k, v]) => { q['b_' + k] = v; });
       location.hash = '#/hehun/r?' + toQuery(q);
+    } else if (type === 'star') {
+      const f = new FormData(form);
+      const a = f.get('a');
+      const b = f.get('b');
+      if (a === '' || b === '' || a == null || b == null) { err.textContent = '请为你和 TA 各选一个星座。'; return; }
+      location.hash = '#/star/r?' + toQuery({ a, b });
     } else if (type === 'xiu') {
       const f = new FormData(form);
       const d = f.get('d') || '';
@@ -606,18 +748,20 @@
       else if (path === '/hehun') { html = renderHehunForm(q); title = '双人合婚'; }
       else if (path === '/hehun/r') { html = renderHehunReport(q); title = '合婚报告'; nav = 'hehun'; }
       else if (path === '/xiu') { html = renderXiu(q); title = '星宿查询'; }
+      else if (path === '/star') { html = renderStarForm(q); title = '星座配对'; }
+      else if (path === '/star/r') { html = renderStarReport(q); title = '星座配对结果'; nav = 'star'; }
       else if (path === '/about') { html = renderAbout(); title = '关于'; }
       else html = renderNotFound('你访问的页面不存在。');
     } catch (err) {
       html = renderNotFound('当前浏览器暂不支持农历换算，请更新浏览器或换用 Chrome、Safari 最新版。');
     }
     app.innerHTML = html;
-    const night = path === '/xiu';
+    const night = path === '/xiu' || path.indexOf('/star') === 0;
     document.documentElement.classList.toggle('theme-night', night);
     document.querySelector('meta[name="theme-color"]').content = night ? '#0a0d16' : '#f2ece0';
     if (night) {
-      const active = q.get('d') ? (profile({ d: q.get('d'), t: '-1', g: 'f' }) || {}).xiu : null;
-      sky.innerHTML = ART.starMap(active ? active.index : null);
+      const active = path === '/xiu' && q.get('d') ? (profile({ d: q.get('d'), t: '-1', g: 'f' }) || {}).xiu : null;
+      sky.innerHTML = ART.starMap(active ? active.index : null, path !== '/xiu');
     }
     document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('is-active', a.dataset.nav === (nav || 'home')));
     document.title = title ? title + ' · 缘分星盘' : '缘分星盘 · 八字正缘测算';

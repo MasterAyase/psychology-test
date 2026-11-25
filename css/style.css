@@ -173,8 +173,8 @@ main:focus, main:focus-visible { outline: none; }
 .today strong { color: var(--ink); font-family: var(--serif); font-weight: 600; }
 .today em { font-style: normal; color: var(--red); }
 
-.features { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line); }
-.feature { position: relative; display: flex; flex-direction: column; padding: 40px 36px 34px; text-decoration: none; transition: background-color .4s; }
+.features { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line); }
+.feature { position: relative; display: flex; flex-direction: column; padding: 40px 28px 34px; text-decoration: none; transition: background-color .4s; }
 .feature + .feature { border-left: 1px solid var(--line); }
 .feature__no { font-family: var(--serif); font-size: 56px; line-height: 1; color: var(--red); font-weight: 600; }
 .feature h2 { margin: 26px 0 10px; font-size: 24px; letter-spacing: .2em; }
@@ -339,6 +339,40 @@ form .btn[type="submit"] { width: 100%; }
 .advice li:first-child { padding-top: 0; }
 .advice li:first-child::before { top: -1px; }
 
+/* 星座配对 */
+.star-hero-art { max-width: 360px; width: 100%; justify-self: end; }
+.art--wheel { color: var(--gold); }
+.star-form { padding-bottom: 16px; }
+.star-form .cols { gap: 48px; }
+.signs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.sign {
+  display: grid; justify-items: center; gap: 2px; padding: 12px 4px 10px; border: 1px solid var(--line); border-radius: 2px;
+  background: transparent; transition: border-color .2s, background-color .2s;
+}
+.sign__g { font-size: 24px; line-height: 1.2; color: var(--gold); font-family: "Segoe UI Symbol", "Noto Sans Symbols", var(--serif); }
+.sign b { font-family: var(--serif); font-size: 14px; font-weight: 600; letter-spacing: .08em; }
+.sign small { font-size: 10px; color: var(--ink-3); }
+.sign.is-on { border-color: var(--gold); background: rgba(200, 167, 106, .14); }
+.sign.is-on .sign__g { color: var(--red); }
+@media (hover: hover) { .sign:hover { border-color: var(--line-2); } }
+.lookup { margin-top: 14px; }
+.lookup summary { cursor: pointer; font-size: 13px; color: var(--gold); letter-spacing: .1em; margin-bottom: 12px; }
+.big-glyph { display: block; font-size: 54px; line-height: 1.1; color: var(--gold); font-family: "Segoe UI Symbol", "Noto Sans Symbols", var(--serif); text-shadow: 0 0 30px rgba(200, 167, 106, .4); }
+.sign-card { position: relative; padding: 26px 24px; border: 1px solid var(--line); background: var(--card); }
+.sign-card__g { position: absolute; right: 18px; top: 10px; font-size: 64px; line-height: 1; color: rgba(200, 167, 106, .2); font-family: "Segoe UI Symbol", "Noto Sans Symbols", var(--serif); }
+.sign-card h3 { font-size: 24px; margin: 14px 0 6px; letter-spacing: .14em; }
+.sign-card .dots { margin: 0 0 14px; }
+.sign-card .tags { margin-bottom: 14px; }
+.sign-card p:last-child { margin: 0; color: var(--ink-2); }
+.matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.matrix { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 13px; }
+.matrix th { padding: 6px 2px; font-weight: 400; color: var(--gold); font-size: 18px; font-family: "Segoe UI Symbol", "Noto Sans Symbols", var(--serif); }
+.matrix tbody th { text-align: left; white-space: nowrap; font-size: 16px; }
+.matrix tbody th span { margin-left: 6px; font-family: var(--sans); font-size: 12px; color: var(--ink-2); }
+.matrix td { padding: 2px; }
+.matrix td a { display: block; padding: 7px 0; text-align: center; text-decoration: none; font-family: var(--serif); color: var(--ink); background: rgba(210, 122, 92, calc(var(--a) * .55)); transition: outline-color .2s; outline: 1px solid transparent; }
+@media (hover: hover) { .matrix td a:hover { outline-color: var(--gold); } }
+
 /* 名词解释 */
 .terms { margin-top: 28px; padding: 18px 20px 6px; background: color-mix(in srgb, var(--ink) 4%, transparent); border-left: 2px solid var(--gold); }
 .terms summary { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; letter-spacing: .3em; color: var(--gold); cursor: pointer; list-style: none; }
@@ -421,6 +455,9 @@ form .btn[type="submit"] { width: 100%; }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, 12px); } 12%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
 @media (max-width: 960px) {
+  .features { grid-template-columns: repeat(2, 1fr); }
+  .feature:nth-child(3) { border-left: 0; }
+  .feature:nth-child(n+3) { border-top: 1px solid var(--line); }
   .hero { grid-template-columns: 1fr; min-height: 0; max-height: none; padding: 32px 0 48px; gap: 16px; }
   .hero__art { order: -1; max-width: 300px; margin: 0 auto; }
   .form-wrap, .xiu-hero, .xiu-result { grid-template-columns: 1fr; gap: 32px; }
@@ -448,6 +485,10 @@ form .btn[type="submit"] { width: 100%; }
   .features, .xiang { grid-template-columns: 1fr; }
   .feature { padding: 30px 0; }
   .feature + .feature { border-left: 0; border-top: 1px solid var(--line); }
+  .star-hero-art { display: none; }
+  .star-form .cols { gap: 8px; }
+  .signs { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .big-glyph { font-size: 44px; }
   .xiang { grid-template-columns: 1fr 1fr; }
   .xiang a { padding: 24px 8px; }
   .xiang a:nth-child(3) { border-left: 0; }
