@@ -200,5 +200,26 @@
     return svg('0 0 120 120', `<circle cx="60" cy="60" r="56" stroke-width=".6"/><circle cx="60" cy="60" r="18" stroke-width=".6" stroke-dasharray="1 3"/>${body}`, 'art art--xiang');
   }
 
-  window.ART = { compass, cloud, seal, knot, divider, xiuRing, constellation, starMap, xiangMap };
+  // 站点标志：星盘外环 + 朱砂新月 + 金星，寓意"月下观星，缘分相照"
+  let logoId = 0;
+  function logo(cls) {
+    const id = 'lg' + (logoId += 1);
+    const ticks = Array.from({ length: 28 }, (_, i) => {
+      const [x1, y1] = polar(32, 32, i % 7 === 0 ? 25.6 : 26.8, (360 / 28) * i);
+      const [x2, y2] = polar(32, 32, 28.6, (360 / 28) * i);
+      return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke-width="${i % 7 === 0 ? 1.1 : .6}"/>`;
+    }).join('');
+    return `<svg class="logo-mark ${cls || ''}" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <defs><mask id="${id}"><rect width="64" height="64" fill="#fff"/><circle cx="36.5" cy="28.5" r="12.2" fill="#000"/></mask></defs>
+      <circle cx="32" cy="32" r="30.5" stroke="var(--logo-gold, #a8843f)" stroke-width="1.1"/>
+      <g stroke="var(--logo-gold, #a8843f)">${ticks}</g>
+      <circle cx="32" cy="32" r="22.5" stroke="var(--logo-gold, #a8843f)" stroke-width=".7" stroke-dasharray="1.2 2.2"/>
+      <circle cx="29.5" cy="32.5" r="14.5" fill="var(--logo-red, #9b2a1f)" mask="url(#${id})"/>
+      <path d="M41 23.5 C41.5 27.4 42.1 28 46 28.5 C42.1 29 41.5 29.6 41 33.5 C40.5 29.6 39.9 29 36 28.5 C39.9 28 40.5 27.4 41 23.5 Z" fill="var(--logo-gold, #a8843f)"/>
+      <circle cx="45.5" cy="38" r="1.3" fill="var(--logo-gold, #a8843f)"/>
+      <circle cx="53.6" cy="10.4" r="2.2" fill="var(--logo-red, #9b2a1f)"/>
+    </svg>`;
+  }
+
+  window.ART = { compass, cloud, seal, knot, divider, xiuRing, constellation, starMap, xiangMap, logo };
 })();

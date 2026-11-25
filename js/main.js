@@ -2,7 +2,6 @@
   const app = document.getElementById('app');
   const { GAN, ZHI, SHENGXIAO, SHICHEN, bazi, lunar } = window.CAL;
   const { WX, GAN_WX, ZHI_WX } = window.FATE;
-  const LAST_KEY = 'fc_last_v1';
   const sky = document.querySelector('.sky');
   const MIN = '1901-03-01';
   const MAX = '2099-12-31';
@@ -11,12 +10,9 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const pad = (n) => String(n).padStart(2, '0');
 
-  function readLast() {
-    try { return JSON.parse(localStorage.getItem(LAST_KEY)) || {}; } catch (e) { return {}; }
-  }
-  function saveLast(v) {
-    try { localStorage.setItem(LAST_KEY, JSON.stringify(Object.assign(readLast(), v))); } catch (e) { /* 无法写入时忽略 */ }
-  }
+  // 不保存任何填写内容；顺手清掉旧版本留在本机的记录
+  try { localStorage.removeItem('fc_last_v1'); } catch (e) { /* 忽略 */ }
+  document.querySelectorAll('.logo__slot').forEach((el) => { el.innerHTML = ART.logo(); });
 
   function toast(msg) {
     document.querySelectorAll('.toast').forEach((t) => t.remove());
@@ -172,7 +168,6 @@
 
   /* ---------- 八字正缘 ---------- */
   function renderBaziForm() {
-    const last = readLast();
     return `<section class="form-wrap page-in">
       <div class="form-aside">
         <span class="eyebrow">八字正缘</span>
@@ -180,8 +175,8 @@
         <p>填写公历生日与出生时辰。时辰越准确，结果越完整；不清楚时辰也可以测算，只是少了时柱。</p>
         ${ART.compass()}
       </div>
-      <form class="form-main" data-form="bazi" novalidate>
-        ${personFields('', '你的生辰', last.a)}
+      <form class="form-main" data-form="bazi" novalidate autocomplete="off">
+        ${personFields('', '你的生辰')}
         <p class="form-error" aria-live="polite"></p>
         <button class="btn btn--red" type="submit">查看我的正缘 <span class="arrow">→</span></button>
         <p class="notice">按北京时间排盘，子时按 0 点计算。测算内容源自传统命理说法，仅供娱乐参考。</p>
@@ -210,6 +205,127 @@
     return `<div class="dots">${[p.date.text, '农历' + p.lunar.text, '属' + p.zodiac, p.hourText, p.xiu.name].map((t) => `<span>${esc(t)}</span>`).join('')}</div>`;
   }
 
+  /* ---------- 报告组件 ---------- */
+  // 正缘报告开头的结论摘要
+  function baziSummary(p, r) {
+    const top = r.best[0];
+    const tiles = [
+      ['日主', r.dayMaster, r.strong ? '身强' : '身弱', 'wx-' + GAN_WX[p.bazi.day.gan]],
+      ['正缘五行', r.spouse.wx, r.spouse.dir, 'wx-' + WX.indexOf(r.spouse.wx)],
+      ['夫妻宫', r.palace.zhi, r.palace.shishen, ''],
+      ['姻缘之年', top ? String(top.year) : '平稳', top ? top.ganzhi + top.zodiac + '年' : '十年内无明显高峰', 'is-red'],
+      ['本命星宿', p.xiu.name, p.xiu.full, '']
+    ].map(([k, v, sub, cls]) => `<div class="tile"><span>${k}</span><b class="${cls}">${esc(v)}</b><small>${esc(sub)}</small></div>`).join('');
+    const who = p.name || '你';
+    const yearText = top ? `未来十年中，<b>${top.year} 年</b>（${top.ganzhi}）${esc(top.why.join('、'))}，是最值得留意的一年。` : '未来十年姻缘运势平稳，缘分更多取决于主动走出去。';
+    return `<section class="summary">
+      <div class="tiles">${tiles}</div>
+      <p class="summary__text">${esc(who)}的日主为<b>${r.dayMaster}</b>，命中${r.strongest}最旺、${r.weakest}偏少。按传统说法，你的正缘五行属<b>${r.spouse.wx}</b>，多半${esc(r.spouse.trait)}，不妨多留意<b>${r.spouse.dir}</b>的缘分。${yearText}</p>
+    </section>`;
+  }
+
+  // 五行生克图：外圈箭头为相生，内部虚线为相克
+  function wxDiagram(count, dm, sp) {
+    const C = 130;
+    const RR = 88;
+    const pos = WX.map((_, i) => {
+      const deg = ((i * 72 + 288) % 360 - 90) * Math.PI / 180;
+      return [C + Math.cos(deg) * RR, C + Math.sin(deg) * RR];
+    });
+    const rad = count.map((n) => Math.min(17 + n * 3.2, 30));
+    const edge = (i, j, inner) => {
+      const [x1, y1] = pos[i];
+      const [x2, y2] = pos[j];
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      const ux = (x2 - x1) / len;
+      const uy = (y2 - y1) / len;
+      const sx = x1 + ux * (rad[i] + 4);
+      const sy = y1 + uy * (rad[i] + 4);
+      const ex = x2 - ux * (rad[j] + 8);
+      const ey = y2 - uy * (rad[j] + 8);
+      if (inner) return `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" class="ke" marker-end="url(#wxKe)"/>`;
+      const mx = (sx + ex) / 2;
+      const my = (sy + ey) / 2;
+      const ox = mx + (mx - C) * 0.22;
+      const oy = my + (my - C) * 0.22;
+      return `<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} Q${ox.toFixed(1)} ${oy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" class="sheng" marker-end="url(#wxSheng)"/>`;
+    };
+    const lines = WX.map((_, i) => edge(i, (i + 1) % 5, false) + edge(i, (i + 2) % 5, true)).join('');
+    const nodes = WX.map((w, i) => {
+      const [x, y] = pos[i];
+      const ring = i === dm ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad[i] + 5}" class="ring ring--dm"/><text x="${x.toFixed(1)}" y="${(y - rad[i] - 10).toFixed(1)}" class="tag">日主</text>`
+        : i === sp ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad[i] + 5}" class="ring ring--sp"/><text x="${x.toFixed(1)}" y="${(y - rad[i] - 10).toFixed(1)}" class="tag tag--sp">配偶星</text>` : '';
+      return `${ring}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad[i]}" style="fill:var(--wx-${i});fill-opacity:${(0.1 + count[i] * 0.08).toFixed(2)};stroke:var(--wx-${i})"/>
+        <text x="${x.toFixed(1)}" y="${(y + 1).toFixed(1)}" class="ch" style="fill:var(--wx-${i})">${w}</text>
+        <text x="${x.toFixed(1)}" y="${(y + 15).toFixed(1)}" class="n">${count[i]}</text>`;
+    }).join('');
+    return `<figure class="wx-diagram"><svg viewBox="0 0 260 260" role="img" aria-label="五行生克图">
+      <defs>
+        <marker id="wxSheng" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1L9 5L0 9" fill="none" stroke="var(--gold)" stroke-width="1.4"/></marker>
+        <marker id="wxKe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 1L9 5L0 9" fill="none" stroke="var(--ink-3)" stroke-width="1.4"/></marker>
+      </defs>${lines}${nodes}</svg>
+      <figcaption><span><i class="sheng"></i>相生</span><span><i class="ke"></i>相克</span></figcaption></figure>`;
+  }
+
+  // 合婚五个维度的加减分
+  const DIMS = [
+    ['宿曜', 18, (l) => l.indexOf('宿曜') === 0],
+    ['生肖', 8, (l) => l.indexOf('生肖') === 0],
+    ['日柱', 12, (l) => l.indexOf('日干') === 0 || l.indexOf('日支') === 0],
+    ['五行', 8, (l) => l === '五行互补'],
+    ['配偶星', 10, (l) => l === '配偶星相应']
+  ];
+  function matchDims(r) {
+    const rows = DIMS.map(([name, max, test]) => {
+      const v = r.items.filter((it) => test(it.label)).reduce((n, it) => n + it.delta, 0);
+      const w = Math.min(Math.abs(v) / max, 1) * 50;
+      const side = v >= 0 ? 'left:50%' : `right:50%`;
+      return `<div class="dim"><span class="dim__name">${name}</span>
+        <div class="dim__track"><i class="dim__fill ${v < 0 ? 'is-neg' : ''}" style="${side}" data-w="${w.toFixed(1)}"></i></div>
+        <em class="${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${v > 0 ? '+' : ''}${v}</em></div>`;
+    }).join('');
+    return `<section class="dims"><div class="dims__head"><span>五维缘分</span><small>基础分 60，各维度加减后得出缘分指数</small></div>${rows}</section>`;
+  }
+
+  function compareTable(a, b, nameA, nameB) {
+    const year = new Date().getFullYear();
+    const da = window.FATE.destiny(a.bazi, a.gender, year);
+    const db = window.FATE.destiny(b.bazi, b.gender, year);
+    const pillarsText = (p) => [p.bazi.year, p.bazi.month, p.bazi.day, p.bazi.hour].filter(Boolean).map((x) => `${ganHTML(x.gan)}${zhiHTML(x.zhi)}`).join(' ').replace(/<b/g, '<span').replace(/<\/b>/g, '</span>');
+    const rows = [
+      ['四柱', pillarsText(a), pillarsText(b)],
+      ['生肖', a.zodiac, b.zodiac],
+      ['日主', `<span class="wx-${GAN_WX[a.bazi.day.gan]}">${da.dayMaster}</span>`, `<span class="wx-${GAN_WX[b.bazi.day.gan]}">${db.dayMaster}</span>`],
+      ['五行最旺', da.strongest, db.strongest],
+      ['五行偏少', da.weakest, db.weakest],
+      ['配偶星', da.spouse.star + ' · ' + da.spouse.wx, db.spouse.star + ' · ' + db.spouse.wx],
+      ['本命宿', a.xiu.name, b.xiu.name],
+      ['农历生日', a.lunar.text, b.lunar.text]
+    ].map(([k, x, y]) => `<tr><th scope="row">${k}</th><td>${x}</td><td>${y}</td></tr>`).join('');
+    return `<div class="compare-wrap"><table class="compare"><thead><tr><th></th><th scope="col">${esc(nameA)}</th><th scope="col">${esc(nameB)}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  const REL_ADVICE = {
+    荣亲: '你们天生互相欣赏，最需要的是把这份欣赏说出口。多一起规划未来，彼此成就会让关系越走越稳。',
+    友衰: '像朋友一样的默契是你们的底色。付出多的一方别忘了表达需要，依赖多的一方要记得回馈。',
+    命命: '你们太像了，容易在同样的地方卡住。遇到分歧时，先承认"我们都有这个毛病"，再一起想办法。',
+    业胎: '缘分来得深也来得重。别急着定义关系，给彼此时间，在相处里慢慢确认这份熟悉感。',
+    危成: '差异是摩擦的来源，也是成长的机会。约定好吵架的规则：不翻旧账、不冷战超过一天。',
+    安坏: '吸引力强，更要守住边界。说话前多想一句"这句话会不会伤到对方"，关系会轻松很多。'
+  };
+  const GRADE_ADVICE = [
+    [90, '整体非常契合，保持现在的节奏，记得在平淡里制造一点仪式感。'],
+    [80, '基础很好，主要功课是沟通方式，遇到问题当天说开。'],
+    [70, '有吸引也有差异，多花时间了解彼此的成长背景和生活习惯。'],
+    [60, '需要更多磨合，先从共同的兴趣和小目标开始建立默契。'],
+    [0, '传统说法上挑战较多，但关系好坏终究取决于相处，真诚和尊重比任何合婚都重要。']
+  ];
+  function adviceHTML(r) {
+    const tips = [REL_ADVICE[r.relation.key], GRADE_ADVICE.find(([min]) => r.score >= min)[1]];
+    r.items.filter((it) => it.delta < 0).forEach((it) => tips.push(it.text));
+    return `<ol class="advice">${tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>`;
+  }
+
   const sec = (i, title, sub, body, keys) => `<section class="sec">
     <div class="sec__head"><span class="sec__no">${NUM[i]}</span><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>
     <div class="sec__body">${body}${keys ? window.GLOSSARY.render(keys) : ''}</div></section>`;
@@ -235,11 +351,12 @@
     return `<section class="report page-in">
       <div class="report-head">
         <div><span class="eyebrow">八字正缘报告</span><h1>${esc(who)}的正缘</h1>${headMeta(p)}</div>
-        ${ART.seal('缘')}
+        ${ART.logo('logo-mark--big')}
       </div>
+      ${baziSummary(p, r)}
       ${sec(0, '四柱八字', '年月日时，天干在上，地支在下', `${pillarsHTML(p)}
         <p class="pillar-note">日主 <b class="wx-${GAN_WX[p.bazi.day.gan]}">${r.dayMaster}</b>，简易判断为<b>${r.strong ? '身强' : '身弱'}</b>。${p.bazi.hour ? '' : '时辰不详，以下分析只依据年、月、日三柱。'}</p>`, ['四柱八字', '天干', '地支', '日主', '元男元女', '十神'].concat(shishenUsed, ['身强身弱']))}
-      ${sec(1, '五行', '八字中五行的个数', `<div class="cols">${wxBars(r.count)}<div><p>命中<b>${r.strongest}</b>最旺，<b>${r.weakest}</b>偏少。</p><p style="margin-top:12px">夫妻宫坐<b>${r.palace.zhi}</b>，十神为<b>${r.palace.shishen}</b>。${esc(r.palace.text)}</p></div></div>`, ['五行', '相生相克', '夫妻宫', r.palace.shishen])}
+      ${sec(1, '五行', '八字中五行的个数', `<div class="cols">${wxDiagram(r.count, GAN_WX[p.bazi.day.gan], sw)}<div>${wxBars(r.count)}<p style="margin-top:22px">命中<b>${r.strongest}</b>最旺，<b>${r.weakest}</b>偏少。</p><p style="margin-top:12px">夫妻宫坐<b>${r.palace.zhi}</b>，十神为<b>${r.palace.shishen}</b>。${esc(r.palace.text)}</p></div></div>`, ['五行', '相生相克', '夫妻宫', r.palace.shishen])}
       ${sec(2, '正缘画像', p.gender === 'm' ? '男命以财星为妻' : '女命以官星为夫', `<div class="portrait">
           <div class="portrait__badge wx-${sw}">${r.spouse.wx}</div>
           <dl class="kv">
@@ -271,9 +388,10 @@
   const pick = (q, prefix) => ({ d: q.get(prefix + 'd') || '', t: q.get(prefix + 't') || '-1', g: q.get(prefix + 'g') || '', n: q.get(prefix + 'n') || '' });
 
   function renderHehunForm(q) {
-    const last = readLast();
-    const a = q.get('a_d') ? pick(q, 'a_') : last.a;
-    const b = last.b || { g: a && a.g === 'f' ? 'm' : 'f' };
+    const a = q.get('a_d') ? pick(q, 'a_') : { g: 'f' };
+    const b = { g: a.g === 'm' ? 'f' : 'm' };
+    // 带入的生日只用一次，刷新后表单回到空白
+    if (q.get('a_d') && history.replaceState) history.replaceState(null, '', '#/hehun');
     return `<section class="form-wrap page-in">
       <div class="form-aside">
         <span class="eyebrow">双人合婚</span>
@@ -281,7 +399,7 @@
         <p>分别填写两人的公历生日。时辰选填，填了会让日柱和五行的判断更准确。</p>
         <div style="width:120px;margin-top:48px;color:var(--red)">${ART.knot()}</div>
       </div>
-      <form class="form-main" data-form="hehun" novalidate>
+      <form class="form-main" data-form="hehun" novalidate autocomplete="off">
         ${personFields('a_', '你', a)}
         ${personFields('b_', 'TA', b)}
         <p class="form-error" aria-live="polite"></p>
@@ -331,9 +449,12 @@
         ${whoHTML(b, 'TA')}
       </div>
       <div class="grade">${r.grade}</div>
+      ${matchDims(r)}
       ${sec(0, '宿曜关系', r.relation.title, `<p>${esc(r.relation.text)}</p>
         <p>${esc(nameA)}（${a.xiu.name}）是 ${esc(nameB)} 的「${back.role}」，${esc(nameB)}（${b.xiu.name}）是 ${esc(nameA)} 的「${r.relation.role}」。${esc(r.relation.distanceText)}</p>`, ['宿曜', '本命宿', '宿曜关系', r.relation.key].concat(r.relation.distance ? ['远近距离'] : []))}
       ${sec(1, '合婚细项', '每一项的加减分', `<ul class="items">${items}</ul>`, itemTerms.concat(['缘分指数']))}
+      ${sec(2, '两人对照', '命盘要点并排看', compareTable(a, b, nameA, nameB), ['日主', '配偶星'])}
+      ${sec(3, '相处建议', r.relation.key + ' · ' + r.grade.split(' · ')[0], adviceHTML(r))}
       <div class="actions">
         <button type="button" class="btn btn--red" data-copy>复制合婚链接</button>
         <a class="btn btn--ghost" href="#/bazi/r?${toQuery(pick(q, 'a_'))}">看 ${esc(nameA)} 的正缘</a>
@@ -345,7 +466,6 @@
 
   /* ---------- 星宿查询 ---------- */
   function renderXiu(q) {
-    const last = readLast();
     const me = q.get('d') ? profile({ d: q.get('d'), t: '-1', g: 'f' }) : null;
     const other = q.get('o') ? profile({ d: q.get('o'), t: '-1', g: 'f' }) : null;
     let result = '';
@@ -377,8 +497,8 @@
       <div class="xiu-hero">
         <div><span class="eyebrow">二十七宿 · 宿曜</span><h1>本命星宿</h1>
           <p>宿曜法以农历生日推算本命宿。二十八宿中牛宿并入女宿，共二十七宿。填上 TA 的生日，还能看两人的星宿关系。</p></div>
-        <form class="glass" data-form="xiu" novalidate>
-          ${dateField('d', '你的公历生日', q.get('d') || (last.a && last.a.d) || '')}
+        <form class="glass" data-form="xiu" novalidate autocomplete="off">
+          ${dateField('d', '你的公历生日', q.get('d') || '')}
           ${dateField('o', 'TA 的公历生日（选填）', q.get('o') || '')}
           <p class="form-error" aria-live="polite"></p>
           <button class="btn btn--red" type="submit">观星 <span class="arrow">→</span></button>
@@ -427,13 +547,11 @@
     if (type === 'bazi') {
       const a = readPerson(form, '');
       if (!validDate(a.d)) { err.textContent = '请选择 1901–2099 年之间的生日。'; return; }
-      saveLast({ a });
       location.hash = '#/bazi/r?' + toQuery(a);
     } else if (type === 'hehun') {
       const a = readPerson(form, 'a_');
       const b = readPerson(form, 'b_');
       if (!validDate(a.d) || !validDate(b.d)) { err.textContent = '两个人的生日都需要填写，范围为 1901–2099 年。'; return; }
-      saveLast({ a, b });
       const q = {};
       Object.entries(a).forEach(([k, v]) => { q['a_' + k] = v; });
       Object.entries(b).forEach(([k, v]) => { q['b_' + k] = v; });

@@ -33,6 +33,8 @@ html.theme-night {
   --red: #d27a5c;
   --red-soft: rgba(210, 122, 92, .12);
   --gold: #c8a76a;
+  --logo-gold: #c8a76a;
+  --logo-red: #d27a5c;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -95,7 +97,10 @@ button { cursor: pointer; }
 .topbar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--paper) 86%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); transition: background-color .6s; }
 .topbar__inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1120px; margin: 0 auto; padding: 14px 28px; }
 .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.logo .seal { width: 32px; height: 32px; font-size: 16px; }
+.logo__slot { display: block; width: 38px; height: 38px; flex: none; }
+.logo-mark { display: block; width: 100%; height: 100%; overflow: visible; }
+@media (hover: hover) { .logo:hover .logo-mark { transform: rotate(-12deg); } }
+.logo-mark { transition: transform .8s var(--ease); }
 .logo__text { font-family: var(--serif); font-size: 18px; font-weight: 600; letter-spacing: .3em; line-height: 1.1; }
 .logo__text small { display: block; margin-top: 4px; font-family: var(--sans); font-size: 9px; font-weight: 400; letter-spacing: .42em; color: var(--ink-3); }
 .topnav { display: flex; gap: 4px; }
@@ -230,7 +235,7 @@ form .btn[type="submit"] { width: 100%; }
 /* 报告 */
 .report-head { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; padding: 72px 0 40px; }
 .report-head h1 { font-size: clamp(36px, 6vw, 64px); letter-spacing: .14em; margin: 20px 0 16px; }
-.report-head .seal { width: 64px; height: 64px; font-size: 30px; }
+.logo-mark--big { width: 96px; height: 96px; }
 
 .pillars { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .pillar { position: relative; padding: 22px 6px 20px; }
@@ -279,6 +284,61 @@ form .btn[type="submit"] { width: 100%; }
 .best-list b { margin-right: 14px; color: var(--red); font-family: var(--serif); }
 .legend { display: flex; gap: 18px; margin-top: 14px; font-size: 12px; color: var(--ink-3); }
 .legend i { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; vertical-align: middle; }
+
+/* 正缘摘要 */
+.summary { margin-bottom: 8px; padding: 36px 0 40px; border-top: 1px solid var(--line-2); }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); background: color-mix(in srgb, var(--card) 70%, transparent); }
+.tile { display: grid; gap: 4px; padding: 22px 18px; text-align: center; }
+.tile + .tile { border-left: 1px solid var(--line); }
+.tile span { font-size: 12px; color: var(--ink-3); letter-spacing: .3em; }
+.tile b { font-family: var(--serif); font-size: clamp(26px, 3.4vw, 36px); font-weight: 600; line-height: 1.3; letter-spacing: .06em; }
+.tile b.is-red { color: var(--red); }
+.tile small { font-size: 12px; color: var(--ink-2); }
+.summary__text { max-width: 52em; margin: 26px auto 0; font-family: var(--serif); font-size: 17px; line-height: 2; text-align: center; color: var(--ink-2); }
+.summary__text b { color: var(--ink); }
+
+/* 五行生克图 */
+.wx-diagram { margin: 0; }
+.wx-diagram svg { display: block; width: 100%; max-width: 300px; margin: 0 auto; overflow: visible; }
+.wx-diagram .sheng { fill: none; stroke: var(--gold); stroke-width: 1.2; }
+.wx-diagram .ke { stroke: var(--ink-3); stroke-width: .8; stroke-dasharray: 3 4; }
+.wx-diagram .ring { fill: none; stroke-width: 1; }
+.wx-diagram .ring--dm { stroke: var(--ink); stroke-dasharray: 2 3; }
+.wx-diagram .ring--sp { stroke: var(--red); }
+.wx-diagram text { text-anchor: middle; dominant-baseline: central; font-family: var(--serif); }
+.wx-diagram .ch { font-size: 20px; font-weight: 600; }
+.wx-diagram .n { font-size: 10px; fill: var(--ink-3); font-family: var(--sans); }
+.wx-diagram .tag { font-size: 10px; fill: var(--ink-2); font-family: var(--sans); letter-spacing: .1em; }
+.wx-diagram .tag--sp { fill: var(--red); }
+.wx-diagram figcaption { display: flex; justify-content: center; gap: 22px; margin-top: 8px; font-size: 12px; color: var(--ink-3); }
+.wx-diagram figcaption i { display: inline-block; width: 18px; margin-right: 6px; vertical-align: middle; border-top: 1px solid var(--gold); }
+.wx-diagram figcaption i.ke { border-top: 1px dashed var(--ink-3); }
+
+/* 合婚：五维、对照表、建议 */
+.dims { display: grid; gap: 14px; padding: 32px 0 36px; }
+.dims__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 6px; }
+.dims__head span { font-family: var(--serif); font-size: 18px; letter-spacing: .3em; }
+.dims__head small { font-size: 12px; color: var(--ink-3); }
+.dim { display: grid; grid-template-columns: 4em 1fr 3em; align-items: center; gap: 18px; }
+.dim__name { font-size: 14px; letter-spacing: .2em; color: var(--ink-2); }
+.dim__track { position: relative; height: 8px; background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.dim__track::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--line-2); }
+.dim__fill { position: absolute; top: 0; height: 100%; width: 0; background: var(--wx-0); transition: width 1.2s var(--ease); }
+.dim__fill.is-neg { background: var(--red); }
+.dim em { font-style: normal; font-family: var(--serif); font-size: 18px; text-align: right; color: var(--ink-3); }
+.dim em.up { color: var(--wx-0); }
+.dim em.down { color: var(--red); }
+.compare-wrap { overflow-x: auto; }
+.compare { width: 100%; border-collapse: collapse; font-size: 14px; }
+.compare th, .compare td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: center; }
+.compare thead th { font-family: var(--serif); font-size: 17px; font-weight: 600; letter-spacing: .2em; border-bottom-color: var(--line-2); }
+.compare tbody th { width: 6.5em; text-align: left; font-weight: 400; font-size: 12px; color: var(--ink-3); letter-spacing: .2em; }
+.compare td { font-family: var(--serif); }
+.advice { margin: 0; padding: 0; list-style: none; counter-reset: a; }
+.advice li { position: relative; padding: 14px 0 14px 44px; border-bottom: 1px solid var(--line); color: var(--ink-2); counter-increment: a; }
+.advice li::before { content: counter(a, cjk-ideographic); position: absolute; left: 0; top: 13px; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--red); color: var(--red); font-family: var(--serif); font-size: 13px; }
+.advice li:first-child { padding-top: 0; }
+.advice li:first-child::before { top: -1px; }
 
 /* 名词解释 */
 .terms { margin-top: 28px; padding: 18px 20px 6px; background: color-mix(in srgb, var(--ink) 4%, transparent); border-left: 2px solid var(--gold); }
@@ -398,7 +458,7 @@ form .btn[type="submit"] { width: 100%; }
   .psych-entry em { margin-left: 52px; }
   .page-head, .report-head, .prose { padding-top: 40px; }
   .report-head { grid-template-columns: 1fr; }
-  .report-head .seal { display: none; }
+  .logo-mark--big { display: none; }
   .sec, .relation, .xiu-group { grid-template-columns: 1fr; gap: 18px; padding: 30px 0; }
   .xiu-detail { grid-column: 1; }
   .cols, .row, .portrait { grid-template-columns: 1fr; gap: 24px; }
@@ -408,6 +468,17 @@ form .btn[type="submit"] { width: 100%; }
   .pillar.is-day::after { display: none; }
   .pillar.is-day { background: var(--red-soft); }
   .match-head { grid-template-columns: 1fr; gap: 20px; padding-top: 40px; }
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+  .tile { padding: 16px 10px; }
+  .tile + .tile { border-left: 0; }
+  .tile:nth-child(even) { border-left: 1px solid var(--line); }
+  .tile:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .tile:last-child { grid-column: 1 / -1; }
+  .summary { padding: 28px 0 32px; }
+  .summary__text { font-size: 15px; text-align: left; }
+  .dim { grid-template-columns: 3.6em 1fr 2.4em; gap: 12px; }
+  .compare th, .compare td { padding: 10px 6px; }
+  .compare tbody th { width: 5em; }
   .score { width: 190px; margin: 0 auto; }
   .score__num b { font-size: 60px; }
   .xiu-hero { padding-top: 40px; }
