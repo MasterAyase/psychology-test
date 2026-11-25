@@ -95,5 +95,110 @@
       ${groups}`, 'art art--ring');
   }
 
-  window.ART = { compass, cloud, seal, knot, divider, xiuRing };
+  // 可复现的伪随机数，保证每次绘制的星图一致
+  function rng(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // 各宿传统星数（用于装饰性的连线示意，不是真实星位）
+  const STARS = [2, 4, 4, 4, 3, 9, 4, 6, 6, 4, 2, 3, 2, 2, 16, 3, 3, 7, 8, 3, 10, 8, 4, 8, 7, 6, 22, 4];
+
+  // 生成一宿的星点与连线，坐标归一到 size×size
+  function shape(i28, size) {
+    const r = rng(i28 * 977 + 13);
+    const n = Math.min(STARS[i28], 9);
+    const pts = [[0, 0]];
+    let ang = r() * Math.PI * 2;
+    for (let k = 1; k < n; k++) {
+      ang += (r() - 0.5) * 2.4;
+      const len = 0.8 + r() * 0.7;
+      const [px, py] = pts[k - 1];
+      pts.push([px + Math.cos(ang) * len, py + Math.sin(ang) * len]);
+    }
+    const xs = pts.map((p) => p[0]);
+    const ys = pts.map((p) => p[1]);
+    const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 1);
+    const ox = (Math.max(...xs) + Math.min(...xs)) / 2;
+    const oy = (Math.max(...ys) + Math.min(...ys)) / 2;
+    return pts.map(([x, y], k) => ({ x: ((x - ox) / span) * size, y: ((y - oy) / span) * size, r: k === 0 ? 2.6 : 1.2 + r() * 1.2 }));
+  }
+
+  function constellationBody(i28, size, cx, cy, cls) {
+    const pts = shape(i28, size);
+    const line = pts.map((p, k) => (k ? 'L' : 'M') + (cx + p.x).toFixed(1) + ' ' + (cy + p.y).toFixed(1)).join('');
+    const dots = pts.map((p) => `<circle cx="${(cx + p.x).toFixed(1)}" cy="${(cy + p.y).toFixed(1)}" r="${p.r.toFixed(1)}" fill="currentColor" stroke="none"/>`).join('');
+    return `<g class="${cls || ''}"><path d="${line}" stroke-width=".7" opacity=".55"/>${dots}</g>`;
+  }
+
+  // 单个星宿的星官图；i27 为二十七宿序号
+  function constellation(i27) {
+    const i28 = i27 < 8 ? i27 : i27 + 1;
+    return svg('-60 -60 120 120', `<circle r="56" stroke-width=".6" stroke-dasharray="1 3" opacity=".6"/>${constellationBody(i28, 70, 0, 0, 'const-glow')}`, 'art art--const');
+  }
+
+  // 全幅星图：二十八宿分野、黄道、北斗与背景星
+  function starMap(active27) {
+    const active = active27 == null ? -1 : active27 < 8 ? active27 : active27 + 1;
+    const r = rng(2026);
+    let bg = '';
+    for (let k = 0; k < 280; k++) {
+      const x = r() * 1000;
+      const y = r() * 1000;
+      bg += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(0.4 + r() * 1.1).toFixed(1)}" fill="currentColor" stroke="none" opacity="${(0.15 + r() * 0.6).toFixed(2)}" class="${k % 9 === 0 ? 'twinkle' : ''}" style="animation-delay:${(-r() * 4).toFixed(1)}s"/>`;
+    }
+    const ticks = Array.from({ length: 180 }, (_, k) => {
+      const deg = k * 2;
+      const [x1, y1] = polar(500, 500, 440, deg);
+      const [x2, y2] = polar(500, 500, k % 5 === 0 ? 452 : 446, deg);
+      return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;
+    }).join('');
+    const consts = XIU28.map((_, i) => {
+      const [cx, cy] = polar(500, 500, 385, (360 / 28) * i + 360 / 56);
+      return constellationBody(i, 56, cx, cy, i === active ? 'is-active' : '');
+    }).join('');
+    const names = XIU28.map((t, i) => {
+      const deg = (360 / 28) * i + 360 / 56;
+      const [x, y] = polar(500, 500, 470, deg);
+      return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="16" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none" class="${i === active ? 'is-active' : ''}" transform="rotate(${deg.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})">${t}</text>`;
+    }).join('');
+    const xiang = ['东方青龙', '北方玄武', '西方白虎', '南方朱雀'].map((g, i) => {
+      const [x, y] = polar(500, 500, 262, ((i * 7 + 3.5) * 360) / 28);
+      return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="17" letter-spacing="6" text-anchor="middle" dominant-baseline="central" fill="currentColor" stroke="none" opacity=".7">${g}</text>`;
+    }).join('');
+    const dipper = [[452, 430], [478, 446], [498, 470], [522, 482], [530, 512], [566, 520], [570, 486]];
+    const dip = `<path d="M${dipper.map((p) => p.join(' ')).join('L')}L522 482" stroke-width=".8" opacity=".6"/>` + dipper.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="currentColor" stroke="none"/>`).join('');
+    return svg('0 0 1000 1000', `
+      <g class="sky-stars">${bg}</g>
+      <g class="spin" style="transform-origin:500px 500px;animation-duration:600s">
+        <circle cx="500" cy="500" r="490" stroke-width=".6" stroke-dasharray="1 6"/>
+        <circle cx="500" cy="500" r="440" stroke-width=".8"/>
+        <circle cx="500" cy="500" r="330" stroke-width=".6"/>
+        ${ticks}
+        ${spokes(500, 500, 330, 440, 28, 0)}
+        ${spokes(500, 500, 0, 330, 4, -360 / 56)}
+        ${consts}${names}${xiang}
+        <circle cx="520" cy="486" r="300" stroke-width=".6" stroke-dasharray="6 8" opacity=".6"/>
+      </g>
+      <circle cx="500" cy="500" r="200" stroke-width=".6" opacity=".7"/>
+      ${dip}
+      <circle cx="500" cy="500" r="3.5" fill="currentColor" stroke="none"/>`, 'art art--sky');
+  }
+
+  // 四象缩略星图：一象七宿
+  function xiangMap(g) {
+    const body = Array.from({ length: 7 }, (_, k) => {
+      const i = g * 7 + k;
+      const [cx, cy] = polar(60, 60, 38, (360 / 7) * k);
+      return constellationBody(i, 22, cx, cy);
+    }).join('');
+    return svg('0 0 120 120', `<circle cx="60" cy="60" r="56" stroke-width=".6"/><circle cx="60" cy="60" r="18" stroke-width=".6" stroke-dasharray="1 3"/>${body}`, 'art art--xiang');
+  }
+
+  window.ART = { compass, cloud, seal, knot, divider, xiuRing, constellation, starMap, xiangMap };
 })();
