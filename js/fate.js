@@ -31,15 +31,15 @@
 
   // 日支（夫妻宫）十神对感情的影响
   const PALACE = {
-    比肩: '夫妻宫坐比肩，你们更像并肩作战的伙伴，彼此独立、平等，也需要注意别各自为政。',
-    劫财: '夫妻宫坐劫财，感情里个性都强，容易为小事争输赢，学会让一步关系会更顺。',
+    比肩: '夫妻宫坐比肩，你们像并肩作战的伙伴，彼此独立又平等，一起奋斗特别有默契。',
+    劫财: '夫妻宫坐劫财，你们都有主见、有冲劲，彼此欣赏对方的好胜心，一起拼事业很合拍。',
     食神: '夫妻宫坐食神，相处轻松有趣，懂得一起享受生活，是很有烟火气的组合。',
-    伤官: '夫妻宫坐伤官，你对伴侣要求高、眼光挑剔，遇到真正欣赏的人才会全心投入。',
-    偏财: '夫妻宫坐偏财，你在感情中大方体贴，异性缘好，用心经营会很幸福。',
-    正财: '夫妻宫坐正财，你重视家庭和责任，感情踏实稳定，适合细水长流。',
-    七杀: '夫妻宫坐七杀，容易被有魄力、有个性的人吸引，感情热烈但需要磨合。',
+    伤官: '夫妻宫坐伤官，你眼光独到、品味好，遇到真正欣赏的人会全心投入，感情浪漫又有趣。',
+    偏财: '夫妻宫坐偏财，你在感情中大方体贴，异性缘好，很容易收获甜蜜。',
+    正财: '夫妻宫坐正财，你重视家庭和承诺，感情踏实稳定，越久越甜。',
+    七杀: '夫妻宫坐七杀，你会被有魄力、有个性的人吸引，感情热烈，彼此都很有安全感。',
     正官: '夫妻宫坐正官，伴侣多端正可靠、有责任心，你们的关系有规矩也有温度。',
-    偏印: '夫妻宫坐偏印，你在感情里需要精神上的共鸣，喜欢能聊深层话题的人。',
+    偏印: '夫妻宫坐偏印，你重视精神上的共鸣，会和能聊深层话题的人走得很近。',
     正印: '夫妻宫坐正印，伴侣会像家人一样照顾你，感情温暖、有依靠感。'
   };
 
@@ -79,7 +79,7 @@
       if (sanhe(p.zhi, dz)) { score += 1; why.push('流年三合夫妻宫'); }
       if (p.zhi === taohua(dz)) { score += 1; why.push('桃花年'); }
       if (GAN_WX[p.gan] === spouseWx) { score += 2; why.push(gender === 'm' ? '财星透出' : '官星透出'); }
-      if (p.zhi === chong(dz)) { score -= 1; why.push('冲夫妻宫，感情易有变动'); }
+      if (p.zhi === chong(dz)) why.push('夫妻宫逢动，感情有新进展的契机');
       years.push({ year: y, ganzhi: p.text, zodiac: SHENGXIAO[p.zhi], score, why });
     }
     const best = years.filter((y) => y.score >= 3).sort((a, b2) => b2.score - a.score).slice(0, 3);
@@ -111,32 +111,34 @@
     const ya = a.bazi.year.zhi;
     const yb = b.bazi.year.zhi;
     const za = SHENGXIAO[ya] + '与' + SHENGXIAO[yb];
-    if (LIUHE[ya] === yb) add(8, '生肖六合', za + '六合，性情互补，相处融洽。');
+    if (LIUHE[ya] === yb) add(8, '生肖六合', za + '六合，性情互补，相处融洽，是传统里很受推崇的组合。');
     else if (sanhe(ya, yb)) add(6, '生肖三合', za + '三合，目标一致，容易同心协力。');
-    else if (chong(ya) === yb) add(-8, '生肖相冲', za + '相冲，脾气容易顶撞，需要多些耐心。');
-    else if (hai(ya) === yb) add(-5, '生肖相害', za + '相害，容易因误会产生隔阂，坦诚沟通很重要。');
-    else if (ya === yb) add(2, '生肖相同', '同属' + SHENGXIAO[ya] + '，生活习惯和想法比较接近。');
-    else add(0, '生肖平和', za + '没有明显的合冲，关系走向取决于相处。');
+    else if (chong(ya) === yb) add(-3, '生肖互动', za + '个性鲜明、火花十足，在一起很少无聊。多一分体谅，这份热烈会变成彼此的动力。');
+    else if (hai(ya) === yb) add(-2, '生肖默契', za + '都是心思细腻的人，把小心思说出口，默契会越来越深。');
+    else if (ya === yb) add(2, '生肖相同', '同属' + SHENGXIAO[ya] + '，生活习惯和想法很接近，相处轻松自在。');
+    else add(0, '生肖平和', za + '相处平和自在，感情可以按你们自己的节奏慢慢生长。');
 
     const da = a.bazi.day;
     const db = b.bazi.day;
     if (ganHe(da.gan, db.gan) || ganHe(db.gan, da.gan)) add(6, '日干五合', GAN[da.gan] + GAN[db.gan] + '相合，彼此有天然的吸引力。');
     if (LIUHE[da.zhi] === db.zhi) add(6, '日支六合', '夫妻宫' + ZHI[da.zhi] + ZHI[db.zhi] + '六合，婚后生活容易和睦。');
-    else if (chong(da.zhi) === db.zhi) add(-6, '日支相冲', '夫妻宫' + ZHI[da.zhi] + ZHI[db.zhi] + '相冲，生活习惯差异大，需要互相迁就。');
+    else if (chong(da.zhi) === db.zhi) add(-2, '日支呼应', '夫妻宫' + ZHI[da.zhi] + ZHI[db.zhi] + '遥相呼应，生活习惯各有特色，正好能给对方带来新鲜感。');
 
     const ea = elements(a.bazi);
     const eb = elements(b.bazi);
     const weakA = ea.indexOf(Math.min.apply(null, ea));
     const weakB = eb.indexOf(Math.min.apply(null, eb));
-    if (eb[weakA] >= 3) add(4, '五行互补', '你命中偏少的' + WX[weakA] + '，正是对方的长处。');
-    if (ea[weakB] >= 3) add(4, '五行互补', '对方命中偏少的' + WX[weakB] + '，正好由你来补足。');
+    if (eb[weakA] >= 3) add(4, '五行互补', '你命中较少的' + WX[weakA] + '，正是对方的长处，和 TA 在一起会更平衡。');
+    if (ea[weakB] >= 3) add(4, '五行互补', '对方命中较少的' + WX[weakB] + '，正好由你来补足，你是 TA 的好帮手。');
 
     const spouseOf = (p) => (p.gender === 'm' ? (GAN_WX[p.bazi.day.gan] + 2) % 5 : (GAN_WX[p.bazi.day.gan] + 3) % 5);
     if (GAN_WX[db.gan] === spouseOf(a)) add(5, '配偶星相应', '对方的日主五行正是你的配偶星，符合传统说法里的"正缘"特征。');
     if (GAN_WX[da.gan] === spouseOf(b)) add(5, '配偶星相应', '你的日主五行正是对方的配偶星，你很可能是对方心中的理想型。');
 
-    score = Math.max(52, Math.min(98, score));
-    const grade = score >= 90 ? '上上婚 · 天作之合' : score >= 80 ? '上等婚 · 情投意合' : score >= 70 ? '中上婚 · 用心经营' : score >= 60 ? '中等婚 · 磨合成长' : '需包容 · 慢慢靠近';
+    // 原始分折算到 70–98，结论以鼓励为主
+    const raw = Math.max(52, Math.min(98, score));
+    score = Math.round(70 + ((raw - 52) * 28) / 46);
+    const grade = score >= 92 ? '上上缘 · 天作之合' : score >= 86 ? '上等缘 · 情投意合' : score >= 80 ? '良缘 · 心意相通' : score >= 75 ? '佳缘 · 渐入佳境' : '慢热缘 · 细水长流';
     return { score, grade, relation: rel, items };
   }
 

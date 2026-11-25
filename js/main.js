@@ -220,7 +220,7 @@
     const yearText = top ? `未来十年中，<b>${top.year} 年</b>（${top.ganzhi}）${esc(top.why.join('、'))}，是最值得留意的一年。` : '未来十年姻缘运势平稳，缘分更多取决于主动走出去。';
     return `<section class="summary">
       <div class="tiles">${tiles}</div>
-      <p class="summary__text">${esc(who)}的日主为<b>${r.dayMaster}</b>，命中${r.strongest}最旺、${r.weakest}偏少。按传统说法，你的正缘五行属<b>${r.spouse.wx}</b>，多半${esc(r.spouse.trait)}，不妨多留意<b>${r.spouse.dir}</b>的缘分。${yearText}</p>
+      <p class="summary__text">${esc(who)}的日主为<b>${r.dayMaster}</b>，命中${r.strongest}最旺，五行流转有序。按传统说法，你的正缘五行属<b>${r.spouse.wx}</b>，多半${esc(r.spouse.trait)}，不妨多留意<b>${r.spouse.dir}</b>的缘分。${yearText}</p>
     </section>`;
   }
 
@@ -267,7 +267,7 @@
       <figcaption><span><i class="sheng"></i>相生</span><span><i class="ke"></i>相克</span></figcaption></figure>`;
   }
 
-  // 合婚五个维度的加减分
+  // 合婚五个维度：只展示助力，不出现负分
   const DIMS = [
     ['宿曜', 18, (l) => l.indexOf('宿曜') === 0],
     ['生肖', 8, (l) => l.indexOf('生肖') === 0],
@@ -277,14 +277,13 @@
   ];
   function matchDims(r) {
     const rows = DIMS.map(([name, max, test]) => {
-      const v = r.items.filter((it) => test(it.label)).reduce((n, it) => n + it.delta, 0);
-      const w = Math.min(Math.abs(v) / max, 1) * 50;
-      const side = v >= 0 ? 'left:50%' : `right:50%`;
+      const v = Math.max(0, r.items.filter((it) => test(it.label)).reduce((n, it) => n + it.delta, 0));
+      const w = Math.min(v / max, 1) * 100;
       return `<div class="dim"><span class="dim__name">${name}</span>
-        <div class="dim__track"><i class="dim__fill ${v < 0 ? 'is-neg' : ''}" style="${side}" data-w="${w.toFixed(1)}"></i></div>
-        <em class="${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${v > 0 ? '+' : ''}${v}</em></div>`;
+        <div class="dim__track"><i class="dim__fill" data-w="${w.toFixed(1)}"></i></div>
+        <em class="${v > 0 ? 'up' : ''}">${v > 0 ? '+' + v : '平'}</em></div>`;
     }).join('');
-    return `<section class="dims"><div class="dims__head"><span>五维缘分</span><small>基础分 60，各维度加减后得出缘分指数</small></div>${rows}</section>`;
+    return `<section class="dims"><div class="dims__head"><span>五维缘分</span><small>每个维度为你们带来的缘分助力</small></div>${rows}</section>`;
   }
 
   function compareTable(a, b, nameA, nameB) {
@@ -297,7 +296,7 @@
       ['生肖', a.zodiac, b.zodiac],
       ['日主', `<span class="wx-${GAN_WX[a.bazi.day.gan]}">${da.dayMaster}</span>`, `<span class="wx-${GAN_WX[b.bazi.day.gan]}">${db.dayMaster}</span>`],
       ['五行最旺', da.strongest, db.strongest],
-      ['五行偏少', da.weakest, db.weakest],
+      ['五行较少', da.weakest, db.weakest],
       ['配偶星', da.spouse.star + ' · ' + da.spouse.wx, db.spouse.star + ' · ' + db.spouse.wx],
       ['本命宿', a.xiu.name, b.xiu.name],
       ['农历生日', a.lunar.text, b.lunar.text]
@@ -306,19 +305,19 @@
   }
 
   const REL_ADVICE = {
-    荣亲: '你们天生互相欣赏，最需要的是把这份欣赏说出口。多一起规划未来，彼此成就会让关系越走越稳。',
-    友衰: '像朋友一样的默契是你们的底色。付出多的一方别忘了表达需要，依赖多的一方要记得回馈。',
-    命命: '你们太像了，容易在同样的地方卡住。遇到分歧时，先承认"我们都有这个毛病"，再一起想办法。',
-    业胎: '缘分来得深也来得重。别急着定义关系，给彼此时间，在相处里慢慢确认这份熟悉感。',
-    危成: '差异是摩擦的来源，也是成长的机会。约定好吵架的规则：不翻旧账、不冷战超过一天。',
-    安坏: '吸引力强，更要守住边界。说话前多想一句"这句话会不会伤到对方"，关系会轻松很多。'
+    荣亲: '你们天生互相欣赏，把这份欣赏常常说出口，多一起规划未来，彼此成就会让关系越走越稳。',
+    友衰: '像朋友一样的默契是你们的底色。照顾人的一方被看见，依靠人的一方多回应，温暖会一直在。',
+    命命: '你们心有灵犀，很多话不说也懂。偶尔一起尝试新鲜事，会让这份默契多一点惊喜。',
+    业胎: '缘分来得深，不必着急定义关系，在一次次相处里慢慢确认这份熟悉感，会越来越笃定。',
+    危成: '你们各有所长，正好互相学习。把不同看成新视角，一起尝试对方擅长的事，会收获很多乐趣。',
+    安坏: '你们之间的心动很珍贵。多一点温柔的表达，多一点耐心的倾听，这份吸引会慢慢沉淀成深情。'
   };
   const GRADE_ADVICE = [
-    [90, '整体非常契合，保持现在的节奏，记得在平淡里制造一点仪式感。'],
-    [80, '基础很好，主要功课是沟通方式，遇到问题当天说开。'],
-    [70, '有吸引也有差异，多花时间了解彼此的成长背景和生活习惯。'],
-    [60, '需要更多磨合，先从共同的兴趣和小目标开始建立默契。'],
-    [0, '传统说法上挑战较多，但关系好坏终究取决于相处，真诚和尊重比任何合婚都重要。']
+    [92, '整体非常契合，保持现在的节奏，在平淡日子里制造一点小仪式感，会更甜。'],
+    [86, '你们基础很好，多分享彼此的日常和心事，感情会越来越稳。'],
+    [80, '你们心意相通，一起培养一个共同爱好，会让默契更上一层楼。'],
+    [75, '感情正在渐入佳境，多花时间了解彼此的成长故事，会更懂对方。'],
+    [0, '慢热的缘分往往更长久。从一起完成的小目标开始，一点点积累属于你们的默契。']
   ];
   function adviceHTML(r) {
     const tips = [REL_ADVICE[r.relation.key], GRADE_ADVICE.find(([min]) => r.score >= min)[1]];
@@ -345,7 +344,7 @@
     const sw = WX.indexOf(r.spouse.wx);
     const shishenUsed = [p.bazi.year, p.bazi.month, p.bazi.hour].filter(Boolean).map((x) => window.FATE.shishen(p.bazi.day.gan, x.gan));
     const why = r.years.reduce((all, y) => all.concat(y.why), []).join('');
-    const yearTerms = [].concat(/透出/.test(why) ? ['财星官星透出'] : [], /合夫妻宫/.test(why) ? ['流年合夫妻宫'] : [], /冲夫妻宫/.test(why) ? ['冲夫妻宫'] : []);
+    const yearTerms = [].concat(/透出/.test(why) ? ['财星官星透出'] : [], /合夫妻宫/.test(why) ? ['流年合夫妻宫'] : [], /夫妻宫逢动/.test(why) ? ['夫妻宫逢动'] : []);
     return `<section class="report page-in">
       <div class="report-head">
         <div><span class="eyebrow">八字正缘报告</span><h1>${esc(who)}的正缘</h1>${headMeta(p)}</div>
@@ -353,8 +352,8 @@
       </div>
       ${baziSummary(p, r)}
       ${sec(0, '四柱八字', '年月日时，天干在上，地支在下', `${pillarsHTML(p)}
-        <p class="pillar-note">日主 <b class="wx-${GAN_WX[p.bazi.day.gan]}">${r.dayMaster}</b>，简易判断为<b>${r.strong ? '身强' : '身弱'}</b>。${p.bazi.hour ? '' : '时辰不详，以下分析只依据年、月、日三柱。'}</p>`, ['日主', '十神'].concat(shishenUsed, ['身强身弱']))}
-      ${sec(1, '五行', '八字中五行的个数', `<div class="cols">${wxDiagram(r.count, GAN_WX[p.bazi.day.gan], sw)}<div>${wxBars(r.count)}<p style="margin-top:22px">命中<b>${r.strongest}</b>最旺，<b>${r.weakest}</b>偏少。</p><p style="margin-top:12px">夫妻宫坐<b>${r.palace.zhi}</b>，十神为<b>${r.palace.shishen}</b>。${esc(r.palace.text)}</p></div></div>`, ['夫妻宫', r.palace.shishen])}
+        <p class="pillar-note">日主 <b class="wx-${GAN_WX[p.bazi.day.gan]}">${r.dayMaster}</b>，简易判断为<b>${r.strong ? '身强' : '身弱'}</b>。${p.bazi.hour ? '' : '时辰不详，以下分析只依据年、月、日三柱。'}</p>`, ['日主', '身强身弱'])}
+      ${sec(1, '五行', '八字中五行的个数', `<div class="cols">${wxDiagram(r.count, GAN_WX[p.bazi.day.gan], sw)}<div>${wxBars(r.count)}<p style="margin-top:22px">命中<b>${r.strongest}</b>最旺，<b>${r.weakest}</b>稍弱，生活中多亲近与${r.weakest}相关的事物，能让状态更平衡。</p><p style="margin-top:12px">夫妻宫坐<b>${r.palace.zhi}</b>，十神为<b>${r.palace.shishen}</b>。${esc(r.palace.text)}</p></div></div>`, ['夫妻宫', r.palace.shishen])}
       ${sec(2, '正缘画像', p.gender === 'm' ? '男命以财星为妻' : '女命以官星为夫', `<div class="portrait">
           <div class="portrait__badge wx-${sw}">${r.spouse.wx}</div>
           <dl class="kv">
@@ -367,12 +366,12 @@
           </dl></div>`, ['配偶星'], { dm: WX[GAN_WX[p.bazi.day.gan]], sp: r.spouse.wx, gender: p.gender })}
       ${sec(3, '属相与桃花', '', `<div class="cols">
           <div><span class="label">与夫妻宫相合</span><div class="tags">${r.zodiac.good.map((z) => `<span class="tag tag--good">${z}</span>`).join('')}</div>
-            <span class="label" style="margin-top:22px">相处宜多包容</span><div class="tags">${r.zodiac.avoid.map((z) => `<span class="tag tag--bad">${z}</span>`).join('')}</div></div>
+            <span class="label" style="margin-top:22px">多些耐心会更甜</span><div class="tags">${r.zodiac.avoid.map((z) => `<span class="tag">${z}</span>`).join('')}</div></div>
           <dl class="kv"><dt>红鸾</dt><dd>${r.stars.hongluan}年 · 主婚恋喜事</dd><dt>天喜</dt><dd>${r.stars.tianxi}年 · 主感情升温</dd><dt>桃花</dt><dd>${r.stars.taohua} · 主异性缘</dd></dl>
         </div>`, ['红鸾', '天喜', '桃花'])}
       ${sec(4, '十年姻缘', '流年与命盘的呼应', `<div class="years">${years}</div>
         <div class="legend"><span><i style="background:var(--red)"></i>姻缘旺</span><span><i style="background:var(--gold)"></i>有助力</span><span><i style="background:var(--line-2)"></i>平</span></div>${bestList}`, yearTerms)}
-      ${sec(5, '本命星宿', p.xiu.group, `<p><b>${p.xiu.name} · ${p.xiu.full}</b></p><p>${esc(p.xiu.text)}</p><p><a href="#/xiu?d=${esc(q.d)}">在星图中查看 →</a></p>`, ['宿曜', '星官名'])}
+      ${sec(5, '本命星宿', p.xiu.group, `<p><b>${p.xiu.name} · ${p.xiu.full}</b></p><p>${esc(p.xiu.text)}</p><p><a href="#/xiu?d=${esc(q.d)}">在星图中查看 →</a></p>`, ['星官名'])}
       <div class="actions">
         <a class="btn btn--red" href="#/hehun?${toQuery({ a_d: q.d, a_t: q.t, a_g: q.g, a_n: q.n })}">和 TA 测合婚 <span class="arrow">→</span></a>
         <button type="button" class="btn btn--ghost" data-copy>复制报告链接</button>
@@ -431,8 +430,8 @@
     const ITEM_TERMS = { '日干五合': '天干五合' };
     const itemTerms = r.items.map((it) => ITEM_TERMS[it.label]).filter(Boolean);
     const items = r.items.map((it) => {
-      const cls = it.delta > 0 ? 'up' : it.delta < 0 ? 'down' : 'zero';
-      return `<li><span class="delta ${cls}">${it.delta > 0 ? '+' : ''}${it.delta}</span><div><strong>${esc(it.label)}</strong><p>${esc(it.text)}</p></div></li>`;
+      const cls = it.delta > 0 ? 'up' : 'zero';
+      return `<li><span class="delta ${cls}">${it.delta > 0 ? '+' + it.delta : it.delta < 0 ? '宜' : '平'}</span><div><strong>${esc(it.label)}</strong><p>${esc(it.text)}</p></div></li>`;
     }).join('');
     return `<section class="report page-in">
       <div class="match-head">
@@ -450,8 +449,8 @@
       ${matchDims(r)}
       ${sec(0, '宿曜关系', r.relation.title, `<p>${esc(r.relation.text)}</p>
         <p>${esc(nameA)}（${a.xiu.name}）是 ${esc(nameB)} 的「${back.role}」，${esc(nameB)}（${b.xiu.name}）是 ${esc(nameA)} 的「${r.relation.role}」。${esc(r.relation.distanceText)}</p>`, [r.relation.key])}
-      ${sec(1, '合婚细项', '每一项的加减分', `<ul class="items">${items}</ul>`, itemTerms)}
-      ${sec(2, '两人对照', '命盘要点并排看', compareTable(a, b, nameA, nameB), ['日主', '配偶星'])}
+      ${sec(1, '合婚细项', '每一项为缘分带来的影响', `<ul class="items">${items}</ul>`, itemTerms)}
+      ${sec(2, '两人对照', '命盘要点并排看', compareTable(a, b, nameA, nameB), ['配偶星'])}
       ${sec(3, '相处建议', r.relation.key + ' · ' + r.grade.split(' · ')[0], adviceHTML(r))}
       <div class="actions">
         <button type="button" class="btn btn--red" data-copy>复制合婚链接</button>
@@ -483,7 +482,7 @@
           <div><span class="eyebrow">农历${me.lunar.text} · ${x.group}</span>
             <div class="xiu-name" style="margin-top:22px">${x.name}</div><div class="xiu-full">${x.full}</div>
             <div class="tags">${x.tags.split(' · ').map((t) => `<span class="tag">${t}</span>`).join('')}</div>
-            <p>${esc(x.text)}</p>${window.GLOSSARY.render(['宿曜', '星官名'])}</div>
+            <p>${esc(x.text)}</p>${window.GLOSSARY.render(['星官名'])}</div>
         </section>${rel}`;
     }
     const groups = ['东方青龙', '北方玄武', '西方白虎', '南方朱雀'].map((g) => {
@@ -505,7 +504,6 @@
       ${result}
       <section class="sec" style="border-top:0;padding-bottom:0"><div class="sec__head"><span class="sec__no">一览</span><h2>二十七宿</h2><p>点击任一宿查看解读</p></div><div></div></section>
       <div class="xiu-table">${groups}</div>
-      ${window.GLOSSARY.render(me ? [] : ['宿曜'])}
       <p class="notice">星宿性格解读为本站原创，星官连线为装饰示意，仅供娱乐参考。</p>
     </section>`;
   }

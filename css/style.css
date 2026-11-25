@@ -322,8 +322,7 @@ form .btn[type="submit"] { width: 100%; }
 .dim { display: grid; grid-template-columns: 4em 1fr 3em; align-items: center; gap: 18px; }
 .dim__name { font-size: 14px; letter-spacing: .2em; color: var(--ink-2); }
 .dim__track { position: relative; height: 8px; background: color-mix(in srgb, var(--ink) 6%, transparent); }
-.dim__track::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--line-2); }
-.dim__fill { position: absolute; top: 0; height: 100%; width: 0; background: var(--wx-0); transition: width 1.2s var(--ease); }
+.dim__fill { position: absolute; left: 0; top: 0; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--red)); transition: width 1.2s var(--ease); }
 .dim__fill.is-neg { background: var(--red); }
 .dim em { font-style: normal; font-family: var(--serif); font-size: 18px; text-align: right; color: var(--ink-3); }
 .dim em.up { color: var(--wx-0); }
